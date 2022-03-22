@@ -75,7 +75,7 @@ class NormalizingFlowModel(nn.Module):
         super(NormalizingFlowModel, self).__init__()
 
         self.backbone = backbone
-        self.affine_layers = [AffineCouplingLayer(in_channels, i % 2 == 0) for i in range(n_layers)]
+        self.affine_layers = nn.ModuleList([AffineCouplingLayer(in_channels, i % 2 == 0) for i in range(n_layers)])
 
     def _fastflow(self, features):
         out, log_det_j = features, None
