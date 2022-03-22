@@ -61,7 +61,7 @@ def main():
     optimizer = Adam(flow_model.parameters(), lr=lr)
 
     # Multivariate Gaussian with mean 0 and identity covariance
-    normal = MultivariateNormal(torch.zeros(fc * 22 * 22), torch.eye(fc * 22 * 22))
+    normal = MultivariateNormal(torch.zeros(fc * 22 * 22).to(device), torch.eye(fc * 22 * 22).to(device))
 
     # Training loop
     best_loss = float("inf")
