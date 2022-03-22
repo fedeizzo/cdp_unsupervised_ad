@@ -86,7 +86,6 @@ def main():
 
             # Collecting epoch loss
             loss += batch_loss.item() / n_orig
-            print(f"\tBatch loss: {batch_loss.item():.3f}")
 
         # Logging epoch loss
         log_str = f"Epoch {epoch + 1} loss: {loss:.3f}"
