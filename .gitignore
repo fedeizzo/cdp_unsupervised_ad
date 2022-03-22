@@ -1,5 +1,5 @@
 /1x1
 .DS_Store
 .idea
-*/__pycache__/*
-*.pyc
+__pycache__/
+*.py[cod]
