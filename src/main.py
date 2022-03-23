@@ -41,7 +41,9 @@ def main():
 
     # Loading data
     t_dir = os.path.join(data_dir, 'templates')
-    x_dirs = [os.path.join(data_dir, 'originals_55'), os.path.join(data_dir, 'originals_76')]
+    # TODO: Multiple models for each original
+    # x_dirs = [os.path.join(data_dir, 'originals_55'), os.path.join(data_dir, 'originals_76')]
+    x_dirs = [os.path.join(data_dir, 'originals_55')]
     f_dirs = [os.path.join(data_dir, 'fakes_55_55'), os.path.join(data_dir, 'fakes_55_76'),
               os.path.join(data_dir, 'fakes_76_55'), os.path.join(data_dir, 'fakes_76_76')]
 
@@ -77,7 +79,7 @@ def main():
                 # Computing Normalizing flows loss
                 batch_loss -= torch.mean(
                     normal.log_prob(o.reshape(-1, fc * 22 * 22)) +
-                    (torch.abs(log_det_j))
+                    log_det_j
                 )
             # Optimizing
             optimizer.zero_grad()
