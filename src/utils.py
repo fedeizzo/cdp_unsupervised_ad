@@ -1,3 +1,4 @@
+import torch
 from argparse import ArgumentParser
 
 # Arguments keys
@@ -9,7 +10,14 @@ TP = "tp"
 FC = "fc"
 NL = "nl"
 PRETRAINED = "pretrained"
+MODEL = "model"
 SEED = "seed"
+
+
+def set_reproducibility(seed):
+    torch.manual_seed(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
 
 
 def parse_args():
@@ -22,6 +30,7 @@ def parse_args():
     parser.add_argument(f"--{FC}", type=int, help="Features channels", default=8)
     parser.add_argument(f"--{NL}", type=int, help="Number of affine coupling layers", default=8)
     parser.add_argument(f"--{PRETRAINED}", action="store_true", help="Whether to use a pre-trained backbone")
+    parser.add_argument(f"--{MODEL}", type=str, help="Trained model to test", default=None)
     parser.add_argument(f"--{SEED}", type=int, help="Randomizing seed", default=0)
 
     return vars(parser.parse_args())

@@ -11,36 +11,10 @@ from torchvision.models.resnet import resnet18
 
 from data.cdp_dataset import get_split
 from models.models import NormalizingFlowModel, adjust_resnet_input
-from utils import parse_args, DATA_DIR, EPOCHS, BS, LR, TP, FC, NL, PRETRAINED, SEED
+from utils import *
 
 
-def main():
-    # Getting program parameters
-    args = parse_args()
-    data_dir = args[DATA_DIR]  # Data directory
-    n_epochs = args[EPOCHS]  # Number of epochs
-    bs = args[BS]  # Batch size
-    lr = args[LR]  # Learning rate
-    tp = args[TP]  # Training data percentage
-    fc = args[FC]  # Features channels
-    n_layers = args[NL]  # Number of affine coupling layers
-    pretrained = args[PRETRAINED]  # Whether backbone will be pre-trained on ImageNet or not
-    seed = args[SEED]  # Random seed
-
-    # Logging program arguments
-    print("Running main program with the following arguments:")
-    print(args)
-
-    # Reproducibility
-    torch.manual_seed(seed)
-    torch.backends.cudnn.benchmark = False
-    torch.backends.cudnn.deterministic = True
-
-    # Device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
-
-    # Loading data
+def load_data(data_dir, tp, bs):
     t_dir = os.path.join(data_dir, 'templates')
     # TODO: Multiple models for each original
     # x_dirs = [os.path.join(data_dir, 'originals_55'), os.path.join(data_dir, 'originals_76')]
@@ -49,10 +23,13 @@ def main():
               os.path.join(data_dir, 'fakes_76_55'), os.path.join(data_dir, 'fakes_76_76')]
 
     n_orig, n_fakes = len(x_dirs), len(f_dirs)
-
     train_set, _, test_set = get_split(t_dir, x_dirs, f_dirs, train_percent=tp, val_percent=0)
     train_loader, test_loader = DataLoader(train_set, batch_size=bs), DataLoader(test_set, batch_size=bs)
 
+    return train_loader, test_loader, n_orig, n_fakes
+
+
+def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pretrained, n_orig, device):
     # Resnet Backbone
     resnet = adjust_resnet_input(resnet18, in_channels=1, pretrained=pretrained)
     modules = list(resnet.children())[:-2]
@@ -64,7 +41,6 @@ def main():
     optimizer = Adam(flow_model.parameters(), lr=lr)
 
     # Multivariate Gaussian with mean 0 and identity covariance
-    normal = MultivariateNormal(torch.zeros(fc * 22 * 22).to(device), torch.eye(fc * 22 * 22).to(device))
 
     # Training loop
     flow_model.train()
@@ -82,7 +58,7 @@ def main():
                 # TODO: Find out the exact loss function
                 """
                 batch_loss -= torch.mean(
-                    normal.log_prob(o.reshape(-1, fc * 22 * 22)) +
+                    distribution.log_prob(o.reshape(-1, fc * 22 * 22)) +
                     log_det_j
                 )
                 """
@@ -107,8 +83,10 @@ def main():
             torch.save(flow_model, "flow_model.pt")
             log_str += " --> Stored best model ever."
         print(log_str)
+    return flow_model
 
-    # Testing loop
+
+def test_flow_model(flow_model, test_loader, distribution, fc, n_orig, n_fakes, device):
     flow_model.eval()
     o_probs, f_probs = [[] for _ in range(n_orig)], [[] for _ in range(n_fakes)]
     with torch.no_grad():
@@ -117,14 +95,14 @@ def main():
             for o_idx in range(n_orig):
                 x = batch["originals"][o_idx].to(device)
                 _, out, _ = flow_model(x)
-                prob = normal.log_prob(out.reshape(-1, fc * 22 * 22))
+                prob = distribution.log_prob(out.reshape(-1, fc * 22 * 22))
                 o_probs[o_idx].extend([p.item() for p in prob])
 
             # Collecting log probabilities for fakes
             for f_idx in range(n_fakes):
                 x = batch["fakes"][f_idx].to(device)
                 _, out, _ = flow_model(x)
-                prob = normal.log_prob(out.reshape(-1, fc * 22 * 22))
+                prob = distribution.log_prob(out.reshape(-1, fc * 22 * 22))
                 f_probs[f_idx].extend([p.item() for p in prob])
 
     for o_idx, o_name in zip(range(n_orig), ["55", "76"]):
@@ -132,10 +110,51 @@ def main():
 
     for f_idx, f_name in zip(range(n_fakes), ["55/55", "55/76", "76/55", "76/76"]):
         plt.hist(f_probs[f_idx], label=f"Fakes {f_name}")
-
     plt.title("Anomaly score for test CDPs")
     plt.legend()
     plt.savefig("anomaly_scores.png")
+
+
+def main():
+    # Getting program parameters
+    args = parse_args()
+    data_dir = args[DATA_DIR]  # Data directory
+    n_epochs = args[EPOCHS]  # Number of epochs
+    bs = args[BS]  # Batch size
+    lr = args[LR]  # Learning rate
+    tp = args[TP]  # Training data percentage
+    fc = args[FC]  # Features channels
+    n_layers = args[NL]  # Number of affine coupling layers
+    pretrained = args[PRETRAINED]  # Whether backbone will be pre-trained on ImageNet or not
+    model_path = args[MODEL]
+    seed = args[SEED]  # Random seed
+
+    # Logging program arguments
+    print("Running main program with the following arguments:")
+    print(args)
+
+    # Reproducibility
+    set_reproducibility(seed)
+
+    # Device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    # Loading data
+    train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
+
+    # Defining Z distribution
+    dist = MultivariateNormal(torch.zeros(fc * 22 * 22).to(device), torch.eye(fc * 22 * 22).to(device))
+
+    # Getting the flow model
+    if model_path is not None and os.path.isfile(model_path):
+        flow_model = torch.load(model_path)
+    else:
+        # Training loop
+        flow_model = train_flow_model(train_loader, dist, fc, n_layers, n_epochs, lr, pretrained, n_orig, device)
+
+    # Testing loop
+    test_flow_model(flow_model, test_loader, dist, fc, n_orig, n_fakes, device)
     print("Program completed successfully!\n\n")
 
 
