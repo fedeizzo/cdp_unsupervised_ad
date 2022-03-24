@@ -71,11 +71,14 @@ class AffineCouplingLayer(nn.Module):
 
 
 class NormalizingFlowModel(nn.Module):
-    def __init__(self, backbone, in_channels, n_layers=4):
+    def __init__(self, backbone, in_channels, n_layers=4, freeze_backbone=True):
         super(NormalizingFlowModel, self).__init__()
 
         self.backbone = backbone
         self.affine_layers = nn.ModuleList([AffineCouplingLayer(in_channels, i % 2 == 0) for i in range(n_layers)])
+        if freeze_backbone:
+            for param in self.backbone.parameters():
+                param.requires_grad = False
 
     def _fastflow(self, features):
         out, log_det_j = features, None
