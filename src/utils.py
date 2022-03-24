@@ -8,6 +8,7 @@ LR = "lr"
 TP = "tp"
 FC = "fc"
 NL = "nl"
+PRETRAINED = "pretrained"
 SEED = "seed"
 
 
@@ -20,6 +21,7 @@ def parse_args():
     parser.add_argument(f"--{TP}", type=float, help="Training data percentage", default=0.3)
     parser.add_argument(f"--{FC}", type=int, help="Features channels", default=8)
     parser.add_argument(f"--{NL}", type=int, help="Number of affine coupling layers", default=8)
+    parser.add_argument(f"--{PRETRAINED}", action="store_true", help="Whether to use a pre-trained backbone")
     parser.add_argument(f"--{SEED}", type=int, help="Randomizing seed", default=0)
 
     return vars(parser.parse_args())

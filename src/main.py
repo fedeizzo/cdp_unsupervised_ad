@@ -11,7 +11,7 @@ from torchvision.models.resnet import resnet18
 
 from data.cdp_dataset import get_split
 from models.models import NormalizingFlowModel, adjust_resnet_input
-from utils import parse_args, DATA_DIR, EPOCHS, BS, LR, TP, FC, NL, SEED
+from utils import parse_args, DATA_DIR, EPOCHS, BS, LR, TP, FC, NL, PRETRAINED, SEED
 
 
 def main():
@@ -24,6 +24,7 @@ def main():
     tp = args[TP]  # Training data percentage
     fc = args[FC]  # Features channels
     n_layers = args[NL]  # Number of affine coupling layers
+    pretrained = args[PRETRAINED]  # Whether backbone will be pre-trained on ImageNet or not
     seed = args[SEED]  # Random seed
 
     # Logging program arguments
@@ -53,7 +54,7 @@ def main():
     train_loader, test_loader = DataLoader(train_set, batch_size=bs), DataLoader(test_set, batch_size=bs)
 
     # Resnet Backbone
-    resnet = adjust_resnet_input(resnet18, in_channels=1, pretrained=False)
+    resnet = adjust_resnet_input(resnet18, in_channels=1, pretrained=pretrained)
     modules = list(resnet.children())[:-2]
     modules.append(nn.Conv2d(512, fc, (1, 1)))
     resnet = nn.Sequential(*modules)
