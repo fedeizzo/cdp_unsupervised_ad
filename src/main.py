@@ -18,13 +18,13 @@ def main():
     # Getting program parameters
     args = parse_args()
     data_dir = args[DATA_DIR]  # Data directory
-    n_epochs = args[EPOCHS]    # Number of epochs
-    bs = args[BS]              # Batch size
-    lr = args[LR]              # Learning rate
-    tp = args[TP]              # Training data percentage
-    fc = args[FC]              # Features channels
-    n_layers = args[NL]        # Number of affine coupling layers
-    seed = args[SEED]          # Random seed
+    n_epochs = args[EPOCHS]  # Number of epochs
+    bs = args[BS]  # Batch size
+    lr = args[LR]  # Learning rate
+    tp = args[TP]  # Training data percentage
+    fc = args[FC]  # Features channels
+    n_layers = args[NL]  # Number of affine coupling layers
+    seed = args[SEED]  # Random seed
 
     # Logging program arguments
     print("Running main program with the following arguments:")
@@ -66,6 +66,7 @@ def main():
     normal = MultivariateNormal(torch.zeros(fc * 22 * 22).to(device), torch.eye(fc * 22 * 22).to(device))
 
     # Training loop
+    flow_model.train()
     best_loss = float("inf")
     for epoch in range(n_epochs):
         loss = 0.0
@@ -77,17 +78,25 @@ def main():
                 _, o, log_det_j = flow_model(x)
 
                 # Computing Normalizing flows loss
+                # TODO: Find out the exact loss function
+                """
                 batch_loss -= torch.mean(
                     normal.log_prob(o.reshape(-1, fc * 22 * 22)) +
                     log_det_j
                 )
+                """
+                batch_loss += torch.mean(
+                    torch.mean(0.5 * o ** 2, dim=[1, 2, 3]) -
+                    log_det_j
+                )
+
             # Optimizing
             optimizer.zero_grad()
             batch_loss.backward()
             optimizer.step()
 
             # Collecting epoch loss
-            loss += batch_loss.item() / n_orig
+            loss += batch_loss.item() / (len(train_loader) * n_orig)
 
         # Logging epoch loss
         log_str = f"Epoch {epoch + 1} loss: {loss:.3f}"
@@ -99,21 +108,23 @@ def main():
         print(log_str)
 
     # Testing loop
+    flow_model.eval()
     o_probs, f_probs = [[] for _ in range(n_orig)], [[] for _ in range(n_fakes)]
-    for batch in test_loader:
-        # Collecting log probabilities for originals
-        for o_idx in range(n_orig):
-            x = batch["originals"][o_idx].to(device)
-            _, out, _ = flow_model(x)
-            prob = normal.log_prob(out.reshape(-1, fc * 22 * 22))
-            o_probs[o_idx].extend([p.item() for p in prob])
+    with torch.no_grad():
+        for batch in test_loader:
+            # Collecting log probabilities for originals
+            for o_idx in range(n_orig):
+                x = batch["originals"][o_idx].to(device)
+                _, out, _ = flow_model(x)
+                prob = normal.log_prob(out.reshape(-1, fc * 22 * 22))
+                o_probs[o_idx].extend([p.item() for p in prob])
 
-        # Collecting log probabilities for fakes
-        for f_idx in range(n_fakes):
-            x = batch["fakes"][f_idx].to(device)
-            _, out, _ = flow_model(x)
-            prob = normal.log_prob(out.reshape(-1, fc * 22 * 22))
-            f_probs[f_idx].extend([p.item() for p in prob])
+            # Collecting log probabilities for fakes
+            for f_idx in range(n_fakes):
+                x = batch["fakes"][f_idx].to(device)
+                _, out, _ = flow_model(x)
+                prob = normal.log_prob(out.reshape(-1, fc * 22 * 22))
+                f_probs[f_idx].extend([p.item() for p in prob])
 
     for o_idx, o_name in zip(range(n_orig), ["55", "76"]):
         plt.hist(o_probs[o_idx], label=f"Originals {o_name}")
