@@ -76,7 +76,7 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
             loss += batch_loss.item() / (len(train_loader) * n_orig)
 
         # Logging epoch loss
-        log_str = f"Epoch {epoch + 1} loss: {loss:.3f}"
+        log_str = f"Epoch {epoch + 1}/{n_epochs} loss: {loss:.3f}"
 
         # Storing best model yet
         if best_loss > loss:
