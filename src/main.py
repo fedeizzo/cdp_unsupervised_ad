@@ -1,7 +1,7 @@
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 
-import torch
 import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
@@ -24,7 +24,7 @@ def load_data(data_dir, tp, bs):
 
     n_orig, n_fakes = len(x_dirs), len(f_dirs)
     train_set, _, test_set = get_split(t_dir, x_dirs, f_dirs, train_percent=tp, val_percent=0)
-    train_loader, test_loader = DataLoader(train_set, batch_size=bs), DataLoader(test_set, batch_size=bs)
+    train_loader, test_loader = DataLoader(train_set, batch_size=bs, shuffle=True), DataLoader(test_set, batch_size=bs)
 
     return train_loader, test_loader, n_orig, n_fakes
 
@@ -78,6 +78,7 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
         # Logging epoch loss
         log_str = f"Epoch {epoch + 1} loss: {loss:.3f}"
 
+        # Storing best model yet
         if best_loss > loss:
             best_loss = loss
             torch.save(flow_model, "flow_model.pt")
@@ -89,6 +90,8 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
 def test_flow_model(flow_model, test_loader, distribution, fc, n_orig, n_fakes, device):
     flow_model.eval()
     o_probs, f_probs = [[] for _ in range(n_orig)], [[] for _ in range(n_fakes)]
+
+    # Computing all anomaly scores
     with torch.no_grad():
         for batch in test_loader:
             # Collecting log probabilities for originals
@@ -105,14 +108,19 @@ def test_flow_model(flow_model, test_loader, distribution, fc, n_orig, n_fakes, 
                 prob = distribution.log_prob(out.reshape(-1, fc * 22 * 22))
                 f_probs[f_idx].extend([p.item() for p in prob])
 
+    # Plotting histogram of anomaly scores
     for o_idx, o_name in zip(range(n_orig), ["55", "76"]):
-        plt.hist(o_probs[o_idx], label=f"Originals {o_name}")
+        plt.plot(np.arange(len(o_probs[o_idx])), o_probs[o_idx], label=f"Originals {o_name}")
 
     for f_idx, f_name in zip(range(n_fakes), ["55/55", "55/76", "76/55", "76/76"]):
-        plt.hist(f_probs[f_idx], label=f"Fakes {f_name}")
+        plt.plot(np.arange(len(f_probs[f_idx])), f_probs[f_idx], label=f"Fakes {f_name}")
     plt.title("Anomaly score for test CDPs")
     plt.legend()
     plt.savefig("anomaly_scores.png")
+
+    # Storing anomaly scores to files
+    np.save("o_log_probs.npy", np.array(o_probs))
+    np.save("f_log_probs.npy", np.array(f_probs))
 
 
 def main():
@@ -126,7 +134,7 @@ def main():
     fc = args[FC]  # Features channels
     n_layers = args[NL]  # Number of affine coupling layers
     pretrained = args[PRETRAINED]  # Whether backbone will be pre-trained on ImageNet or not
-    model_path = args[MODEL]
+    model_path = args[MODEL]  # Path to pre-trained model (if any)
     seed = args[SEED]  # Random seed
 
     # Logging program arguments
