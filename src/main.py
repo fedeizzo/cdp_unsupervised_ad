@@ -32,8 +32,8 @@ def load_data(data_dir, tp, bs):
 def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pretrained, n_orig, device):
     # Resnet Backbone
     resnet = adjust_resnet_input(resnet18, in_channels=1, pretrained=pretrained)
-    modules = list(resnet.children())[:-2]
-    modules.append(nn.Conv2d(512, fc, (1, 1)))
+    modules = list(resnet.children())[:-3]
+    modules.append(nn.Conv2d(256, fc, (1, 1)))
     resnet = nn.Sequential(*modules)
 
     # FastFlow Model
@@ -98,14 +98,16 @@ def test_flow_model(flow_model, test_loader, distribution, fc, n_orig, n_fakes, 
             for o_idx in range(n_orig):
                 x = batch["originals"][o_idx].to(device)
                 _, out, _ = flow_model(x)
-                prob = distribution.log_prob(out.reshape(-1, fc * 22 * 22))
+                # prob = distribution.log_prob(out.reshape(-1, fc * 14 * 14))
+                prob = - torch.mean(out ** 2, dim=[1, 2, 3])
                 o_probs[o_idx].extend([p.item() for p in prob])
 
             # Collecting log probabilities for fakes
             for f_idx in range(n_fakes):
                 x = batch["fakes"][f_idx].to(device)
                 _, out, _ = flow_model(x)
-                prob = distribution.log_prob(out.reshape(-1, fc * 22 * 22))
+                # prob = distribution.log_prob(out.reshape(-1, fc * 14 * 14))
+                prob = - torch.mean(out ** 2, dim=[1, 2, 3])
                 f_probs[f_idx].extend([p.item() for p in prob])
 
     # Plotting histogram of anomaly scores
@@ -156,6 +158,7 @@ def main():
 
     # Getting the flow model
     if model_path is not None and os.path.isfile(model_path):
+        # Loading pre-trained model
         flow_model = torch.load(model_path)
     else:
         # Training loop
