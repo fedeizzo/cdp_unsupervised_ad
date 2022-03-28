@@ -10,5 +10,5 @@ python3 -u \
   --fc 256 \
   --nl 8 \
   --pretrained \
-  --model ${HOME}/cdp_fastflow/flow_model.pt \
-  --seed 0
+  --seed 0 \
+  --model ${HOME}/cdp_fastflow/flow_model.pt
