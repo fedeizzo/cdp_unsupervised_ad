@@ -58,7 +58,7 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
                 # TODO: Find out the exact loss function
                 """
                 batch_loss -= torch.mean(
-                    distribution.log_prob(o.reshape(-1, fc * 22 * 22)) +
+                    distribution.log_prob(o.reshape(len(x), -1)) +
                     log_det_j
                 )
                 """
@@ -155,6 +155,7 @@ def main():
     train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
 
     # Defining Z distribution
+    # TODO: Adjust distribution dimensionality with output dimension of network.
     dist = MultivariateNormal(torch.zeros(fc * 22 * 22).to(device), torch.eye(fc * 22 * 22).to(device))
 
     # Getting the flow model
