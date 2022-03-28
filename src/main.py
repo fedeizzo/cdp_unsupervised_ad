@@ -155,8 +155,8 @@ def main():
     train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
 
     # Defining Z distribution
-    # TODO: Adjust distribution dimensionality with output dimension of network.
-    dist = MultivariateNormal(torch.zeros(fc * 22 * 22).to(device), torch.eye(fc * 22 * 22).to(device))
+    dist_dim = fc * 43 * 43  # fc x 43 x 43 is the output dimensionality of resnet50 (layer3) for a 684 x 684 input.
+    dist = MultivariateNormal(torch.zeros(dist_dim).to(device), torch.eye(dist_dim).to(device))
 
     # Getting the flow model
     if model_path is not None and os.path.isfile(model_path):
