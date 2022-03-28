@@ -33,7 +33,7 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
     # Resnet Backbone
     resnet = adjust_resnet_input(resnet50, in_channels=1, pretrained=pretrained)
     modules = list(resnet.children())[:-3]
-    modules.append(nn.Conv2d(256, fc, (1, 1)))
+    modules.append(nn.Conv2d(1024, fc, (1, 1)))  # Note: 1024 is the number of channels out of resnet50 (layer3)
     resnet = nn.Sequential(*modules)
 
     # FastFlow Model
