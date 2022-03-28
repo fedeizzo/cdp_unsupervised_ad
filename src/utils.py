@@ -27,7 +27,7 @@ def parse_args():
     parser.add_argument(f"--{BS}", type=int, help="Batch size", default=8)
     parser.add_argument(f"--{LR}", type=float, help="Learning rate", default=0.0001)
     parser.add_argument(f"--{TP}", type=float, help="Training data percentage", default=0.3)
-    parser.add_argument(f"--{FC}", type=int, help="Features channels", default=8)
+    parser.add_argument(f"--{FC}", type=int, help="Features channels", default=256)
     parser.add_argument(f"--{NL}", type=int, help="Number of affine coupling layers", default=8)
     parser.add_argument(f"--{PRETRAINED}", action="store_true", help="Whether to use a pre-trained backbone")
     parser.add_argument(f"--{MODEL}", type=str, help="Trained model to test", default=None)

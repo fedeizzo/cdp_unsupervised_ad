@@ -7,7 +7,7 @@ python3 -u \
   --bs 8 \
   --lr 0.0001 \
   --tp 0.3 \
-  --fc 8 \
+  --fc 256 \
   --nl 8 \
   --pretrained \
   --model ${HOME}/cdp_fastflow/flow_model.pt \
