@@ -148,7 +148,7 @@ class AffineCoupling(nn.Module):
 
 
 class NormalizingFlowModel(nn.Module):
-    def __init__(self, backbone, in_channels, n_layers=4, freeze_backbone=True):
+    def __init__(self, backbone, in_channels, n_layers=16, freeze_backbone=True):
         super(NormalizingFlowModel, self).__init__()
 
         self.backbone = backbone
