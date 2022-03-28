@@ -3,7 +3,7 @@
 python3 -u \
   ${HOME}/cdp_fastflow/src/main.py \
   --data /home/users/p/pulfer/cdp_fastflow/1x1 \
-  --epochs 100 \
+  --epochs 500 \
   --bs 8 \
   --lr 0.001 \
   --tp 0.3 \
