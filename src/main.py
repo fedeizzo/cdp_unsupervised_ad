@@ -7,7 +7,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torch.distributions import MultivariateNormal
 
-from torchvision.models.resnet import resnet18
+from torchvision.models.resnet import resnet50
 
 from data.cdp_dataset import get_split
 from models.models import NormalizingFlowModel, adjust_resnet_input
@@ -31,7 +31,7 @@ def load_data(data_dir, tp, bs):
 
 def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pretrained, n_orig, device):
     # Resnet Backbone
-    resnet = adjust_resnet_input(resnet18, in_channels=1, pretrained=pretrained)
+    resnet = adjust_resnet_input(resnet50, in_channels=1, pretrained=pretrained)
     modules = list(resnet.children())[:-3]
     modules.append(nn.Conv2d(256, fc, (1, 1)))
     resnet = nn.Sequential(*modules)
@@ -87,7 +87,8 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
     return flow_model
 
 
-def test_flow_model(flow_model, test_loader, distribution, fc, n_orig, n_fakes, device):
+def test_flow_model(flow_model, test_loader, distribution, n_orig, n_fakes, device):
+    # TODO: Use parameter distribution (log_prob)
     flow_model.eval()
     o_probs, f_probs = [[] for _ in range(n_orig)], [[] for _ in range(n_fakes)]
 
@@ -98,7 +99,7 @@ def test_flow_model(flow_model, test_loader, distribution, fc, n_orig, n_fakes, 
             for o_idx in range(n_orig):
                 x = batch["originals"][o_idx].to(device)
                 _, out, _ = flow_model(x)
-                # prob = distribution.log_prob(out.reshape(-1, fc * 14 * 14))
+                # prob = distribution.log_prob(out.reshape(len(x), -1))
                 prob = - torch.mean(out ** 2, dim=[1, 2, 3])
                 o_probs[o_idx].extend([p.item() for p in prob])
 
@@ -106,7 +107,7 @@ def test_flow_model(flow_model, test_loader, distribution, fc, n_orig, n_fakes, 
             for f_idx in range(n_fakes):
                 x = batch["fakes"][f_idx].to(device)
                 _, out, _ = flow_model(x)
-                # prob = distribution.log_prob(out.reshape(-1, fc * 14 * 14))
+                # prob = distribution.log_prob(out.reshape(len(x), -1))
                 prob = - torch.mean(out ** 2, dim=[1, 2, 3])
                 f_probs[f_idx].extend([p.item() for p in prob])
 
@@ -165,7 +166,7 @@ def main():
         flow_model = train_flow_model(train_loader, dist, fc, n_layers, n_epochs, lr, pretrained, n_orig, device)
 
     # Testing loop
-    test_flow_model(flow_model, test_loader, dist, fc, n_orig, n_fakes, device)
+    test_flow_model(flow_model, test_loader, dist, n_orig, n_fakes, device)
     print("Program completed successfully!\n\n")
 
 
