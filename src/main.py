@@ -163,6 +163,9 @@ def main():
         # Loading pre-trained model
         flow_model = torch.load(model_path)
     else:
+        if model_path is not None and not os.path.isfile(model_path):
+            print(f"Could not find pre-trained model at {model_path}. Training a Flow Model from scratch.")
+
         # Training loop
         flow_model = train_flow_model(train_loader, dist, fc, n_layers, n_epochs, lr, pretrained, n_orig, device)
 
