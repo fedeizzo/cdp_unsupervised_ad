@@ -53,6 +53,8 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
                 _, o, log_det_j = flow_model(x)
 
                 # Computing Normalizing flows loss
+                # TODO check loss
+                """
                 batch_loss -= torch.mean(
                     torch.mean(distribution.log_prob(o) ** 2, dim=[1, 2, 3]) +
                     log_det_j
@@ -62,7 +64,6 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
                     torch.mean(0.5 * o ** 2, dim=[1, 2, 3]) -
                     log_det_j
                 )
-                """
 
             # Optimizing
             optimizer.zero_grad()
@@ -96,16 +97,16 @@ def test_flow_model(flow_model, test_loader, distribution, n_orig, n_fakes, devi
             for o_idx in range(n_orig):
                 x = batch["originals"][o_idx].to(device)
                 _, out, _ = flow_model(x)
-                prob = torch.mean(distribution.log_prob(out)**2, dim=[1, 2, 3])
-                # prob = - torch.mean(out ** 2, dim=[1, 2, 3])
+                # prob = torch.mean(distribution.log_prob(out)**2, dim=[1, 2, 3])
+                prob = - torch.mean(out ** 2, dim=[1, 2, 3])
                 o_probs[o_idx].extend([p.item() for p in prob])
 
             # Collecting log probabilities for fakes
             for f_idx in range(n_fakes):
                 x = batch["fakes"][f_idx].to(device)
                 _, out, _ = flow_model(x)
-                prob = torch.mean(distribution.log_prob(out)**2, dim=[1, 2, 3])
-                # prob = - torch.mean(out ** 2, dim=[1, 2, 3])
+                # prob = torch.mean(distribution.log_prob(out)**2, dim=[1, 2, 3])
+                prob = - torch.mean(out ** 2, dim=[1, 2, 3])
                 f_probs[f_idx].extend([p.item() for p in prob])
 
     # Plotting histogram of anomaly scores
