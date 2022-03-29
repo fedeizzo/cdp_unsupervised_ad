@@ -29,7 +29,7 @@ def load_data(data_dir, tp, bs):
     return train_loader, test_loader, n_orig, n_fakes
 
 
-def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pretrained, n_orig, device):
+def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pretrained, freeze, n_orig, device):
     # Resnet Backbone
     resnet = adjust_resnet_input(resnet50, in_channels=1, pretrained=pretrained)
     modules = list(resnet.children())[:-3]
@@ -37,7 +37,7 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
     resnet = nn.Sequential(*modules)
 
     # FastFlow Model
-    flow_model = NormalizingFlowModel(resnet, in_channels=fc, n_layers=n_layers).to(device)
+    flow_model = NormalizingFlowModel(resnet, in_channels=fc, n_layers=n_layers, freeze_backbone=freeze).to(device)
     optimizer = Adam(flow_model.parameters(), lr=lr)
 
     # Training loop
@@ -134,6 +134,7 @@ def main():
     fc = args[FC]  # Features channels
     n_layers = args[NL]  # Number of affine coupling layers
     pretrained = args[PRETRAINED]  # Whether backbone will be pre-trained on ImageNet or not
+    fb = args[FREEZE_BACKBONE]
     model_path = args[MODEL]  # Path to pre-trained model (if any)
     seed = args[SEED]  # Random seed
 
@@ -163,7 +164,7 @@ def main():
             print(f"Could not find pre-trained model at {model_path}. Training a Flow Model from scratch.")
 
         # Training loop
-        flow_model = train_flow_model(train_loader, dist, fc, n_layers, n_epochs, lr, pretrained, n_orig, device)
+        flow_model = train_flow_model(train_loader, dist, fc, n_layers, n_epochs, lr, pretrained, fb, n_orig, device)
 
     # Testing loop
     test_flow_model(flow_model, test_loader, dist, n_orig, n_fakes, device)
