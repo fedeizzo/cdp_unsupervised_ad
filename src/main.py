@@ -7,6 +7,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torch.distributions import Normal
 
+# TODO: Switch to wide resnet50 2
 from torchvision.models.resnet import resnet50
 
 from data.cdp_dataset import get_split
@@ -148,7 +149,7 @@ def main():
 
     # Device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
+    print(f"Using device: {device} ({torch.cuda.get_device_name(device)})")
 
     # Loading data
     train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
