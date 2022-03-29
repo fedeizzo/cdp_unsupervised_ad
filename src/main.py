@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-from torch.distributions import MultivariateNormal
+from torch.distributions import Normal
 
 from torchvision.models.resnet import resnet50
 
@@ -40,8 +40,6 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
     flow_model = NormalizingFlowModel(resnet, in_channels=fc, n_layers=n_layers).to(device)
     optimizer = Adam(flow_model.parameters(), lr=lr)
 
-    # Multivariate Gaussian with mean 0 and identity covariance
-
     # Training loop
     flow_model.train()
     best_loss = float("inf")
@@ -55,10 +53,8 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
                 _, o, log_det_j = flow_model(x)
 
                 # Computing Normalizing flows loss
-                # TODO: Find out the exact loss function
-                """
                 batch_loss -= torch.mean(
-                    distribution.log_prob(o.reshape(len(x), -1)) +
+                    torch.mean(distribution.log_prob(o) ** 2, dim=[1, 2, 3]) +
                     log_det_j
                 )
                 """
@@ -66,6 +62,7 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
                     torch.mean(0.5 * o ** 2, dim=[1, 2, 3]) -
                     log_det_j
                 )
+                """
 
             # Optimizing
             optimizer.zero_grad()
@@ -99,16 +96,16 @@ def test_flow_model(flow_model, test_loader, distribution, n_orig, n_fakes, devi
             for o_idx in range(n_orig):
                 x = batch["originals"][o_idx].to(device)
                 _, out, _ = flow_model(x)
-                # prob = distribution.log_prob(out.reshape(len(x), -1))
-                prob = - torch.mean(out ** 2, dim=[1, 2, 3])
+                prob = torch.mean(distribution.log_prob(out)**2, dim=[1, 2, 3])
+                # prob = - torch.mean(out ** 2, dim=[1, 2, 3])
                 o_probs[o_idx].extend([p.item() for p in prob])
 
             # Collecting log probabilities for fakes
             for f_idx in range(n_fakes):
                 x = batch["fakes"][f_idx].to(device)
                 _, out, _ = flow_model(x)
-                # prob = distribution.log_prob(out.reshape(len(x), -1))
-                prob = - torch.mean(out ** 2, dim=[1, 2, 3])
+                prob = torch.mean(distribution.log_prob(out)**2, dim=[1, 2, 3])
+                # prob = - torch.mean(out ** 2, dim=[1, 2, 3])
                 f_probs[f_idx].extend([p.item() for p in prob])
 
     # Plotting histogram of anomaly scores
@@ -155,9 +152,7 @@ def main():
     train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
 
     # Defining Z distribution
-    # dist_dim = fc * 43 * 43  # fc x 43 x 43 is the output dimensionality of resnet50 (layer3) for a 684 x 684 input.
-    # dist = MultivariateNormal(torch.zeros(dist_dim).to(device), torch.eye(dist_dim).to(device))
-    dist = None
+    dist = Normal(torch.zeros(1).to(device), torch.ones(1).to(device))
 
     # Getting the flow model
     if model_path is not None and os.path.isfile(model_path):
