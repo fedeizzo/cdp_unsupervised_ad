@@ -11,10 +11,11 @@ The code is meant to be run on Python 3.8. Code dependencies are specified in th
 ## Usage
 Training of a FastFlow model (with resnet18 backbone) can be done as such:
 
-`python main.py --data {path} --epochs {ne} --bs {bs} --lr {lr} --tp {tp} --fc {fc} --nl {nl} --seed {seed}`
+`python main.py --data {data_path} --model {model_path} --epochs {ne} --bs {bs} --lr {lr} --tp {tp} --fc {fc} --nl {nl} --seed {seed}`
 
 Where:
- - `path`is the string path to the CDPs
+ - `data_path`is the string path to the CDPs
+ - `model_path`is the string path to a pre-trained CDP FastFlow model
  - `ne` is the number of epochs
  - `bs` is the batch size
  - `lr` is the learning rate
@@ -23,3 +24,6 @@ Where:
  - `nl` is the number of affine-coupling layer in the model (each layer only change half of the input, but which half is affected is changed with every layer)
  - `seed` randomizing seed for reproducibility
 
+Optionally:
+ - ```--pretrained``` to use a pre-trained resnet50 on ImageNet
+ - ```--freeze_backbone``` to freeze the backbone (and not train it)
