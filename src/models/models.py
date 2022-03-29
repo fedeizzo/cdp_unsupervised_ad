@@ -96,6 +96,7 @@ class AffineCoupling(nn.Module):
         super().__init__()
 
         self.affine = affine
+        self.act_norm = ActNorm(in_channel)  # Edited by Brian Pulfer
 
         self.net = nn.Sequential(
             nn.Conv2d(in_channel // 2, filter_size, 3, padding=1),
@@ -112,6 +113,7 @@ class AffineCoupling(nn.Module):
         self.net[2].bias.data.zero_()
 
     def forward(self, input):
+        input, log_in = self.act_norm(input)  # Edited by Brian Pulfer
         in_a, in_b = input.chunk(2, 1)
 
         if self.affine:
@@ -121,7 +123,7 @@ class AffineCoupling(nn.Module):
             # out_a = s * in_a + t
             out_b = (in_b + t) * s
 
-            logdet = torch.sum(torch.log(s).view(input.shape[0], -1), 1)
+            logdet = torch.sum(torch.log(s).view(input.shape[0], -1), 1)  # + log_in  # Edited by Brian Pulfer
 
         else:
             net_out = self.net(in_a)
