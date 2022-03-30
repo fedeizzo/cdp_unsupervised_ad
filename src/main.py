@@ -149,7 +149,7 @@ def main():
 
     # Device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device} ({torch.cuda.get_device_name(device)})")
+    print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
 
     # Loading data
     train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
