@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-from torch.distributions import Normal
 
 # TODO: Switch to wide resnet50 2
 from torchvision.models.resnet import resnet50
@@ -30,7 +29,7 @@ def load_data(data_dir, tp, bs):
     return train_loader, test_loader, n_orig, n_fakes
 
 
-def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pretrained, freeze, n_orig, device):
+def train_flow_model(train_loader, fc, n_layers, n_epochs, lr, pretrained, freeze, n_orig, device):
     # Resnet Backbone
     resnet = adjust_resnet_input(resnet50, in_channels=1, pretrained=pretrained)
     modules = list(resnet.children())[:-3]
@@ -54,13 +53,6 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
                 _, o, log_det_j = flow_model(x)
 
                 # Computing Normalizing flows loss
-                # TODO check loss
-                """
-                batch_loss -= torch.mean(
-                    torch.mean(distribution.log_prob(o) ** 2, dim=[1, 2, 3]) +
-                    log_det_j
-                )
-                """
                 batch_loss += torch.mean(
                     torch.mean(0.5 * o ** 2, dim=[1, 2, 3]) -
                     log_det_j
@@ -86,7 +78,7 @@ def train_flow_model(train_loader, distribution, fc, n_layers, n_epochs, lr, pre
     return flow_model
 
 
-def test_flow_model(flow_model, test_loader, distribution, n_orig, n_fakes, device):
+def test_flow_model(flow_model, test_loader, n_orig, n_fakes, device):
     # TODO: Use parameter distribution (log_prob)
     flow_model.eval()
     o_probs, f_probs = [[] for _ in range(n_orig)], [[] for _ in range(n_fakes)]
@@ -98,16 +90,14 @@ def test_flow_model(flow_model, test_loader, distribution, n_orig, n_fakes, devi
             for o_idx in range(n_orig):
                 x = batch["originals"][o_idx].to(device)
                 _, out, _ = flow_model(x)
-                # prob = torch.mean(distribution.log_prob(out)**2, dim=[1, 2, 3])
-                prob = - torch.mean(out ** 2, dim=[1, 2, 3])
+                prob = - torch.mean(0.5 * out ** 2, dim=[1, 2, 3])
                 o_probs[o_idx].extend([p.item() for p in prob])
 
             # Collecting log probabilities for fakes
             for f_idx in range(n_fakes):
                 x = batch["fakes"][f_idx].to(device)
                 _, out, _ = flow_model(x)
-                # prob = torch.mean(distribution.log_prob(out)**2, dim=[1, 2, 3])
-                prob = - torch.mean(out ** 2, dim=[1, 2, 3])
+                prob = - torch.mean(0.5 * out ** 2, dim=[1, 2, 3])
                 f_probs[f_idx].extend([p.item() for p in prob])
 
     # Plotting histogram of anomaly scores
@@ -154,9 +144,6 @@ def main():
     # Loading data
     train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
 
-    # Defining Z distribution
-    dist = Normal(torch.zeros(1).to(device), torch.ones(1).to(device))
-
     # Getting the flow model
     if model_path is not None and os.path.isfile(model_path):
         # Loading pre-trained model
@@ -166,10 +153,10 @@ def main():
             print(f"Could not find pre-trained model at {model_path}. Training a Flow Model from scratch.")
 
         # Training loop
-        flow_model = train_flow_model(train_loader, dist, fc, n_layers, n_epochs, lr, pretrained, fb, n_orig, device)
+        flow_model = train_flow_model(train_loader, fc, n_layers, n_epochs, lr, pretrained, fb, n_orig, device)
 
     # Testing loop
-    test_flow_model(flow_model, test_loader, dist, n_orig, n_fakes, device)
+    test_flow_model(flow_model, test_loader, n_orig, n_fakes, device)
     print("Program completed successfully!\n\n")
 
 
