@@ -123,12 +123,13 @@ class AffineCoupling(nn.Module):
             # out_a = s * in_a + t
             out_b = (in_b + t) * s
 
-            logdet = torch.sum(torch.log(s).view(input.shape[0], -1), 1)  # + log_in  # Edited by Brian Pulfer
+            # TODO: Double-check correctness of adding log_det of act_norm
+            logdet = torch.sum(torch.log(s).view(input.shape[0], -1), 1) + log_in  # Edited by Brian Pulfer
 
         else:
             net_out = self.net(in_a)
             out_b = in_b + net_out
-            logdet = None
+            logdet = log_in  # Edited by Brian Pulfer
 
         return torch.cat([in_a, out_b], 1), logdet
 
