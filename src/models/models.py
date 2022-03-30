@@ -138,7 +138,7 @@ class AffineCoupling(nn.Module):
         if self.affine:
             log_s, t = self.net(out_a).chunk(2, 1)
             # s = torch.exp(log_s)
-            s = F.sigmoid(log_s + 2)
+            s = torch.sigmoid(log_s + 2)
             # in_a = (out_a - t) / s
             in_b = out_b / s - t
 
@@ -146,7 +146,7 @@ class AffineCoupling(nn.Module):
             net_out = self.net(out_a)
             in_b = out_b - net_out
 
-        return torch.cat([out_a, in_b], 1)
+        return self.act_norm.reverse(torch.cat([out_a, in_b], 1))
 
 
 class NormalizingFlowModel(nn.Module):
@@ -158,18 +158,6 @@ class NormalizingFlowModel(nn.Module):
         if freeze_backbone:
             for param in self.backbone.parameters():
                 param.requires_grad = False
-
-    def _fastflow(self, features):
-        out, sum_log_det_js = features, 0
-        for al in self.affine_layers:
-            # Running affine coupling layer
-            out, log_det_j = al(out)
-            sum_log_det_js += log_det_j
-
-            # Permutation of channels
-            first_half, second_half = out.chunk(2, 1)
-            out = torch.cat((second_half, first_half), dim=1)
-        return out, sum_log_det_js
 
     def forward(self, x):
         # Checking dimensionality
@@ -184,3 +172,29 @@ class NormalizingFlowModel(nn.Module):
         out, log_det_j = self._fastflow(features)
 
         return features, out, log_det_j
+
+    def _fastflow(self, features):
+        out, sum_log_det_js = features, 0
+        for al in self.affine_layers:
+            # Running affine coupling layer
+            out, log_det_j = al(out)
+            sum_log_det_js += log_det_j
+
+            # Permutation of channels
+            first_half, second_half = out.chunk(2, 1)
+            out = torch.cat((second_half, first_half), dim=1)
+        return out, sum_log_det_js
+
+    def reverse(self, out):
+        n = len(self.affine_layers)
+        features = out
+        first_half, second_half = features.chunk(2, 1)
+        features = torch.cat((second_half, first_half), dim=1)
+        for i in range(n):
+            al = self.affine_layers[n - i - 1]
+            features = al.reverse(features)
+
+            if n-1-i != 0:
+                first_half, second_half = features.chunk(2, 1)
+                features = torch.cat((second_half, first_half), dim=1)
+        return features
