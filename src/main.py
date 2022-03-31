@@ -146,7 +146,7 @@ def main():
     if model_path is not None and os.path.isfile(model_path):
         # Loading pre-trained model
         flow_model = NormalizingFlowModel(resnet, fc, n_layers)
-        flow_model.load_state_dict(model_path)
+        flow_model.load_state_dict(torch.load(model_path, map_location=device))
     else:
         # Training loop
         if model_path is not None and not os.path.isfile(model_path):

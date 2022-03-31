@@ -79,7 +79,7 @@ def main():
     # Loading model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = NormalizingFlowModel(get_backbone_resnet(pretrained, fc), fc, nl)
-    model.load_state_dict(model_path, map_location=device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
 
     # Visualizing reconstruction and reconstruction after introduction of anomaly
