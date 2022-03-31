@@ -30,7 +30,7 @@ def load_data(data_dir, tp, bs):
     return train_loader, test_loader, n_orig, n_fakes
 
 
-def train_flow_model(train_loader, backbone, fc, n_layers, n_epochs, lr, pretrained, freeze, n_orig, device):
+def train_flow_model(train_loader, backbone, fc, n_layers, n_epochs, lr, freeze, n_orig, device):
     # FastFlow Model
     flow_model = NormalizingFlowModel(backbone, in_channels=fc, n_layers=n_layers, freeze_backbone=freeze).to(device)
     optimizer = Adam(flow_model.parameters(), lr=lr)
@@ -151,7 +151,7 @@ def main():
         # Training loop
         if model_path is not None and not os.path.isfile(model_path):
             print(f"Could not find pre-trained state dict at {model_path}. Training a Flow Model from scratch.")
-        flow_model = train_flow_model(train_loader, resnet, fc, n_layers, n_epochs, lr, pretrained, fb, n_orig, device)
+        flow_model = train_flow_model(train_loader, resnet, fc, n_layers, n_epochs, lr, fb, n_orig, device)
 
     # Testing loop
     test_flow_model(flow_model, test_loader, n_orig, n_fakes, device)
