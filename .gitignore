@@ -1,8 +1,9 @@
 /1x1
 /results
-.DS_Store
-.idea
+/dev_scripts
 */__pycache__/*
 *.py[cod]
 *.pt
 *.npy
+.DS_Store
+.idea
