@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from data.cdp_dataset import CDPDataset
@@ -36,25 +35,28 @@ def show_images(images, h=1):
     plt.show()
 
 
-def visualize_sample(model, sample):
+def visualize_sample(model, sample, with_manipulation=False):
     # Running original forward
     features, out, _ = model(sample.unsqueeze(0))
     reconstruction = model.reverse(out)
     f, o, r = get_heatmap(features[0]), get_heatmap(out[0]), get_heatmap(reconstruction[0])
 
-    # Running manipulation forward
-    manipulated = torch.clone(sample)
-    manipulated[:, 292:392, 292:392] = 1
-    features_m, out_m, _ = model(manipulated.unsqueeze(0))
-    reconstruction_m = model.reverse(out_m)
-    fm, om, rm = get_heatmap(features_m[0]), get_heatmap(out_m[0]), get_heatmap(reconstruction_m[0])
+    if with_manipulation:
+        # Running manipulation forward
+        manipulated = torch.clone(sample)
+        manipulated[:, 292:392, 292:392] = 1
+        features_m, out_m, _ = model(manipulated.unsqueeze(0))
+        reconstruction_m = model.reverse(out_m)
+        fm, om, rm = get_heatmap(features_m[0]), get_heatmap(out_m[0]), get_heatmap(reconstruction_m[0])
 
-    show_images(
-        [(sample[0], "CDP"), (f, "Features"), (o, "Mapped to normal"), (r, "Reconstructed features"),
-         (manipulated[0], "Manipulated CDP"), (fm, "Features"), (om, "Mapped to normal"),
-         (rm, "Reconstructed features")],
-        2
-    )
+        show_images(
+            [(sample[0], "CDP"), (f, "Features"), (o, "Mapped to normal"), (r, "Reconstructed features"),
+             (manipulated[0], "Manipulated CDP"), (fm, "Features"), (om, "Mapped to normal"),
+             (rm, "Reconstructed features")],
+            2
+        )
+    else:
+        show_images([(sample[0], "CDP"), (f, "Features"), (o, "Mapped to normal"), (r, "Reconstructed features")])
 
 
 def main():
@@ -85,10 +87,14 @@ def main():
     # Visualizing reconstruction and reconstruction after introduction of anomaly
     for batch in loader:
         original = batch["originals"][0][0]
-        fake = batch["fakes"][0][0]
+        f55_55, f55_76 = batch["fakes"][0][0], batch["fakes"][1][0]
+        f76_55, f76_76 = batch["fakes"][2][0], batch["fakes"][3][0]
 
-        visualize_sample(model, original)
-        visualize_sample(model, fake)
+        visualize_sample(model, original, with_manipulation=True)
+        visualize_sample(model, f55_55)
+        visualize_sample(model, f55_76)
+        visualize_sample(model, f76_55)
+        visualize_sample(model, f76_76)
 
         break
 
