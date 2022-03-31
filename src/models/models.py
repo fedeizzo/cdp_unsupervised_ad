@@ -67,7 +67,7 @@ class ZeroConv2d(nn.Module):
         self.scale = nn.Parameter(torch.zeros(1, out_channel, 1, 1))
 
     def forward(self, input):
-        out = F.pad(input, [1, 1, 1, 1], value=1)
+        out = F.pad(input, [1, 1, 1, 1], value=0)
         out = self.conv(out)
         out = out * torch.exp(self.scale * 3)
 
