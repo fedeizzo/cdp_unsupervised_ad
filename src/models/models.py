@@ -3,23 +3,6 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 
-def adjust_resnet_input(resnet_fn, in_channels, pretrained=False):
-    # Creating model
-    resnet = resnet_fn(pretrained=pretrained)
-
-    # Modifying first conv layer's expected input channels
-    resnet.conv1 = nn.Conv2d(
-        in_channels,
-        resnet.conv1.out_channels,
-        resnet.conv1.kernel_size,
-        stride=resnet.conv1.stride,
-        padding=resnet.conv1.padding,
-        bias=resnet.conv1.bias
-    )
-
-    return resnet
-
-
 class ActNorm(nn.Module):
     """Activation Normalization class from GLOW pytorch implementation
     (https://github.com/rosinality/glow-pytorch/blob/master/model.py)"""
@@ -96,7 +79,7 @@ class AffineCoupling(nn.Module):
         super().__init__()
 
         self.affine = affine
-        self.act_norm = ActNorm(in_channel)  # Edited by Brian Pulfer
+        # self.act_norm = ActNorm(in_channel)  # Edited by Brian Pulfer
 
         self.net = nn.Sequential(
             nn.Conv2d(in_channel // 2, filter_size, 3, padding=1),
@@ -113,7 +96,7 @@ class AffineCoupling(nn.Module):
         self.net[2].bias.data.zero_()
 
     def forward(self, input):
-        input, log_in = self.act_norm(input)  # Edited by Brian Pulfer
+        # input, log_in = self.act_norm(input)  # Edited by Brian Pulfer
         in_a, in_b = input.chunk(2, 1)
 
         if self.affine:
@@ -124,12 +107,12 @@ class AffineCoupling(nn.Module):
             out_b = (in_b + t) * s
 
             # TODO: Double-check correctness of adding log_det of act_norm
-            logdet = torch.sum(torch.log(s).view(input.shape[0], -1), 1) + log_in  # Edited by Brian Pulfer
+            logdet = torch.sum(torch.log(s).view(input.shape[0], -1), 1)  # + log_in  # Edited by Brian Pulfer
 
         else:
             net_out = self.net(in_a)
             out_b = in_b + net_out
-            logdet = log_in  # Edited by Brian Pulfer
+            logdet = None  # log_in  # Edited by Brian Pulfer
 
         return torch.cat([in_a, out_b], 1), logdet
 
@@ -147,7 +130,7 @@ class AffineCoupling(nn.Module):
             net_out = self.net(out_a)
             in_b = out_b - net_out
 
-        return self.act_norm.reverse(torch.cat([out_a, in_b], 1))
+        return torch.cat([out_a, in_b], 1)  # self.act_norm.reverse(torch.cat([out_a, in_b], 1))
 
 
 class NormalizingFlowModel(nn.Module):
@@ -195,7 +178,7 @@ class NormalizingFlowModel(nn.Module):
             al = self.affine_layers[n - i - 1]
             features = al.reverse(features)
 
-            if n-1-i != 0:
+            if n - 1 - i != 0:
                 first_half, second_half = features.chunk(2, 1)
                 features = torch.cat((second_half, first_half), dim=1)
         return features

@@ -10,7 +10,8 @@ from torch.utils.data import DataLoader
 from torchvision.models.resnet import resnet50
 
 from data.cdp_dataset import get_split
-from models.models import NormalizingFlowModel, adjust_resnet_input
+from models.models import NormalizingFlowModel
+from models.utils import get_backbone_resnet
 from utils import *
 
 
@@ -29,15 +30,9 @@ def load_data(data_dir, tp, bs):
     return train_loader, test_loader, n_orig, n_fakes
 
 
-def train_flow_model(train_loader, fc, n_layers, n_epochs, lr, pretrained, freeze, n_orig, device):
-    # Resnet Backbone
-    resnet = adjust_resnet_input(resnet50, in_channels=1, pretrained=pretrained)
-    modules = list(resnet.children())[:-3]
-    modules.append(nn.Conv2d(1024, fc, (1, 1)))  # Note: 1024 is the number of channels out of resnet50 (layer3)
-    resnet = nn.Sequential(*modules)
-
+def train_flow_model(train_loader, backbone, fc, n_layers, n_epochs, lr, pretrained, freeze, n_orig, device):
     # FastFlow Model
-    flow_model = NormalizingFlowModel(resnet, in_channels=fc, n_layers=n_layers, freeze_backbone=freeze).to(device)
+    flow_model = NormalizingFlowModel(backbone, in_channels=fc, n_layers=n_layers, freeze_backbone=freeze).to(device)
     optimizer = Adam(flow_model.parameters(), lr=lr)
 
     # Training loop
@@ -72,7 +67,7 @@ def train_flow_model(train_loader, fc, n_layers, n_epochs, lr, pretrained, freez
         # Storing best model yet
         if best_loss > loss:
             best_loss = loss
-            torch.save(flow_model, "flow_model.pt")
+            torch.save(flow_model.state_dict(), "flow_model_sd.pt")
             log_str += " --> Stored best model ever."
         print(log_str)
     return flow_model
@@ -144,16 +139,19 @@ def main():
     # Loading data
     train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
 
+    # Resnet Backbone
+    resnet = get_backbone_resnet(pretrained, fc)
+
     # Getting the flow model
     if model_path is not None and os.path.isfile(model_path):
         # Loading pre-trained model
-        flow_model = torch.load(model_path)
+        flow_model = NormalizingFlowModel(resnet, fc, n_layers)
+        flow_model.load_state_dict(model_path)
     else:
+        # Training loop
         if model_path is not None and not os.path.isfile(model_path):
             print(f"Could not find pre-trained model at {model_path}. Training a Flow Model from scratch.")
-
-        # Training loop
-        flow_model = train_flow_model(train_loader, fc, n_layers, n_epochs, lr, pretrained, fb, n_orig, device)
+        flow_model = train_flow_model(train_loader, resnet, fc, n_layers, n_epochs, lr, pretrained, fb, n_orig, device)
 
     # Testing loop
     test_flow_model(flow_model, test_loader, n_orig, n_fakes, device)
