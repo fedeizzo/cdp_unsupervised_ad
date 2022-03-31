@@ -150,7 +150,7 @@ def main():
     else:
         # Training loop
         if model_path is not None and not os.path.isfile(model_path):
-            print(f"Could not find pre-trained model at {model_path}. Training a Flow Model from scratch.")
+            print(f"Could not find pre-trained state dict at {model_path}. Training a Flow Model from scratch.")
         flow_model = train_flow_model(train_loader, resnet, fc, n_layers, n_epochs, lr, pretrained, fb, n_orig, device)
 
     # Testing loop
