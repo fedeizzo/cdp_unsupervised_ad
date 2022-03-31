@@ -218,8 +218,6 @@ class CDPSourceLoader(DataLoader):
 
 def main():
     """Study the dataset in terms of pearson correlation in the input space."""
-    import seaborn as sns
-    from tqdm import tqdm
     import matplotlib.pyplot as plt
 
     t_dir = './../../1x1/templates'
