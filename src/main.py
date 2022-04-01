@@ -2,12 +2,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-import torch.nn as nn
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
-# TODO: Switch to wide resnet50 2
-from torchvision.models.resnet import resnet50
+from torchvision.models.resnet import resnet50, wide_resnet50_2
 
 from data.cdp_dataset import get_split
 from models.models import NormalizingFlowModel
@@ -74,7 +72,6 @@ def train_flow_model(train_loader, backbone, fc, n_layers, n_epochs, lr, freeze,
 
 
 def test_flow_model(flow_model, test_loader, n_orig, n_fakes, device):
-    # TODO: Use parameter distribution (log_prob)
     flow_model.eval()
     o_probs, f_probs = [[] for _ in range(n_orig)], [[] for _ in range(n_fakes)]
 
@@ -140,7 +137,7 @@ def main():
     train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
 
     # Resnet Backbone
-    resnet = get_backbone_resnet(pretrained, fc)
+    resnet = get_backbone_resnet(wide_resnet50_2, 1024, fc, pretrained)
 
     # Getting the flow model
     if model_path is not None and os.path.isfile(model_path):

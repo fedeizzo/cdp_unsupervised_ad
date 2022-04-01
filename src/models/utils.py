@@ -1,5 +1,4 @@
 import torch.nn as nn
-from torchvision.models.resnet import resnet50
 
 
 def adjust_resnet_input(resnet_fn, in_channels, pretrained=False):
@@ -19,9 +18,9 @@ def adjust_resnet_input(resnet_fn, in_channels, pretrained=False):
     return resnet
 
 
-def get_backbone_resnet(pretrained, final_n_channels):
-    resnet = adjust_resnet_input(resnet50, in_channels=1, pretrained=pretrained)
+def get_backbone_resnet(resnet_fn, resnet_out_channels, backbone_out_channels, pretrained):
+    resnet = adjust_resnet_input(resnet_fn, in_channels=1, pretrained=pretrained)
     modules = list(resnet.children())[:-3]
-    modules.append(nn.Conv2d(1024, final_n_channels, (1, 1)))  # Note: 1024 channels out of resnet50 (layer3)
+    modules.append(nn.Conv2d(resnet_out_channels, backbone_out_channels, (1, 1)))
     resnet = nn.Sequential(*modules)
     return resnet

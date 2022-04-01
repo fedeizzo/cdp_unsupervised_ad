@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
 
+from torchvision.models.resnet import wide_resnet50_2
+
 from data.cdp_dataset import CDPDataset
 from models.models import NormalizingFlowModel
 from models.utils import get_backbone_resnet
@@ -80,7 +82,7 @@ def main():
 
     # Loading model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = NormalizingFlowModel(get_backbone_resnet(pretrained, fc), fc, nl)
+    model = NormalizingFlowModel(get_backbone_resnet(wide_resnet50_2, 1024, fc, pretrained), fc, nl)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
 
