@@ -6,7 +6,7 @@ python3 -u \
   --model ${HOME}/cdp_fastflow/flow_model_sd.pt \
   --epochs 500 \
   --bs 16 \
-  --lr 0.001 \
+  --lr 0.0001 \
   --tp 0.3 \
   --fc 256 \
   --nl 16 \
