@@ -73,7 +73,7 @@ def train_flow_model(train_loader, backbone, fc, n_layers, n_epochs, lr, freeze,
 
 def test_flow_model(flow_model, test_loader, n_orig, n_fakes, device):
     flow_model.eval()
-    o_probs, f_probs = [[] for _ in range(n_orig)], [[] for _ in range(n_fakes)]
+    o_scores, f_scores = [[] for _ in range(n_orig)], [[] for _ in range(n_fakes)]
 
     # Computing all anomaly scores
     with torch.no_grad():
@@ -82,29 +82,29 @@ def test_flow_model(flow_model, test_loader, n_orig, n_fakes, device):
             for o_idx in range(n_orig):
                 x = batch["originals"][o_idx].to(device)
                 _, out, _ = flow_model(x)
-                prob = - torch.mean(0.5 * out ** 2, dim=[1, 2, 3])
-                o_probs[o_idx].extend([p.item() for p in prob])
+                scores = torch.mean(0.5 * out ** 2, dim=[1, 2, 3])
+                o_scores[o_idx].extend([s.item() for s in scores])
 
             # Collecting log probabilities for fakes
             for f_idx in range(n_fakes):
                 x = batch["fakes"][f_idx].to(device)
                 _, out, _ = flow_model(x)
-                prob = - torch.mean(0.5 * out ** 2, dim=[1, 2, 3])
-                f_probs[f_idx].extend([p.item() for p in prob])
+                scores = torch.mean(0.5 * out ** 2, dim=[1, 2, 3])
+                f_scores[f_idx].extend([s.item() for s in scores])
 
     # Plotting histogram of anomaly scores
     for o_idx, o_name in zip(range(n_orig), ["55", "76"]):
-        plt.plot(np.arange(len(o_probs[o_idx])), o_probs[o_idx], label=f"Originals {o_name}")
+        plt.plot(np.arange(len(o_scores[o_idx])), o_scores[o_idx], label=f"Originals {o_name}")
 
     for f_idx, f_name in zip(range(n_fakes), ["55/55", "55/76", "76/55", "76/76"]):
-        plt.plot(np.arange(len(f_probs[f_idx])), f_probs[f_idx], label=f"Fakes {f_name}")
+        plt.plot(np.arange(len(f_scores[f_idx])), f_scores[f_idx], label=f"Fakes {f_name}")
     plt.title("Anomaly score for test CDPs")
     plt.legend()
     plt.savefig("anomaly_scores.png")
 
     # Storing anomaly scores to files
-    np.save("o_log_probs.npy", np.array(o_probs))
-    np.save("f_log_probs.npy", np.array(f_probs))
+    np.save("o_scores.npy", np.array(o_scores))
+    np.save("f_scores.npy", np.array(f_scores))
 
 
 def main():
@@ -144,6 +144,7 @@ def main():
         # Loading pre-trained model
         flow_model = NormalizingFlowModel(resnet, fc, n_layers)
         flow_model.load_state_dict(torch.load(model_path, map_location=device))
+        flow_model = flow_model.to(device)
     else:
         # Training loop
         if model_path is not None and not os.path.isfile(model_path):
