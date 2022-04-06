@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 
 # Arguments keys
 DATA_DIR = 'data'
+CATEGORY = 'category'
 EPOCHS = "epochs"
 BS = "bs"
 LR = "lr"
@@ -24,6 +25,7 @@ def set_reproducibility(seed):
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument(f"--{DATA_DIR}", type=str, help="Data root directory path")
+    parser.add_argument(f"--{CATEGORY}", type=str, default="bottle", help="Category for the mvtec dataset")
     parser.add_argument(f"--{EPOCHS}", type=int, help="Number of epochs", default=1)
     parser.add_argument(f"--{BS}", type=int, help="Batch size", default=8)
     parser.add_argument(f"--{LR}", type=float, help="Learning rate", default=0.001)

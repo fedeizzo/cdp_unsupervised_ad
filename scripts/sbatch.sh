@@ -21,5 +21,6 @@ module load Python/3.8.6
 # pip list
 # pip install -r ~/cdp_fastflow/requirements.txt
 
-# Running MahaAD script
-srun ${HOME}/cdp_fastflow/scripts/run_main.sh
+# Running FastFlow
+# srun ${HOME}/cdp_fastflow/scripts/run_main.sh
+srun ${HOME}/cdp_fastflow/scripts/run_main_mvtec.sh
