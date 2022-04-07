@@ -2,7 +2,7 @@
 
 python3 -u \
   ${HOME}/cdp_fastflow/src/main_mvtec.py \
-  --data /home/users/p/pulfer/cdp_fastflow/1x1 \
+  --data /home/users/p/pulfer/cdp_fastflow/datasets/mvtec_anomaly_detection \
   --category bottle \
   --model ${HOME}/cdp_fastflow/flow_model_sd.pt \
   --epochs 500 \
