@@ -18,9 +18,14 @@ def adjust_resnet_input(resnet_fn, in_channels, pretrained=False):
     return resnet
 
 
-def get_backbone_resnet(resnet_fn, resnet_in_channels, resnet_out_channels, backbone_out_channels, pretrained):
+def get_backbone_resnet(resnet_fn, resnet_in_channels, resnet_out_channels, backbone_out_channels, pretrained,
+                        resnet_layer=3):
+    supported_layers = [1, 2, 3, 4]
+    assert resnet_layer in supported_layers, \
+        f"resnet_layer should be in {supported_layers}, found {resnet_layer} instead"
+
     resnet = adjust_resnet_input(resnet_fn, in_channels=resnet_in_channels, pretrained=pretrained)
-    modules = list(resnet.children())[:-3]
+    modules = list(resnet.children())[:-(2 + (4 - resnet_layer))]
     modules.append(nn.Conv2d(resnet_out_channels, backbone_out_channels, (1, 1)))
     resnet = nn.Sequential(*modules)
     return resnet

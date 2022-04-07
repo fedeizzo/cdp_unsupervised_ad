@@ -102,6 +102,7 @@ def main():
     lr = args[LR]  # Learning rate
     fc = args[FC]  # Features channels
     n_layers = args[NL]  # Number of affine coupling layers
+    rl = args[RL]
     pretrained = args[PRETRAINED]  # Whether backbone will be pre-trained on ImageNet or not
     fb = args[FREEZE_BACKBONE]
     model_path = args[MODEL]  # Path to pre-trained model (if any)
@@ -122,7 +123,7 @@ def main():
     train_loader, test_loader = load_data(data_dir, category, bs)
 
     # Resnet Backbone
-    resnet = get_backbone_resnet(wide_resnet50_2, 3, 1024, fc, pretrained)
+    resnet = get_backbone_resnet(wide_resnet50_2, 3, 1024, fc, pretrained, rl)
 
     # Getting the flow model
     if model_path is not None and os.path.isfile(model_path):

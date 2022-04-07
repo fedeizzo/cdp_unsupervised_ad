@@ -10,6 +10,7 @@ LR = "lr"
 TP = "tp"
 FC = "fc"
 NL = "nl"
+RL = "rl"
 PRETRAINED = "pretrained"
 FREEZE_BACKBONE = "freeze_backbone"
 MODEL = "model"
@@ -32,6 +33,7 @@ def parse_args():
     parser.add_argument(f"--{TP}", type=float, help="Training data percentage", default=0.3)
     parser.add_argument(f"--{FC}", type=int, help="Features channels", default=256)
     parser.add_argument(f"--{NL}", type=int, help="Number of affine coupling layers", default=16)
+    parser.add_argument(f"--{RL}", type=int, help="Final resnet layer used as feature extractor", default=3)
     parser.add_argument(f"--{PRETRAINED}", action="store_true", help="Whether to use a pre-trained backbone")
     parser.add_argument(f"--{FREEZE_BACKBONE}", action="store_true", help="Whether to freeze the backbone or not.")
     parser.add_argument(f"--{MODEL}", type=str, help="Trained model to test", default=None)

@@ -12,7 +12,7 @@ from torchvision.models.resnet import resnet50, wide_resnet50_2
 from data.cdp_dataset import CDPDataset
 from models.models import NormalizingFlowModel
 from models.utils import get_backbone_resnet
-from utils import parse_args, DATA_DIR, MODEL, PRETRAINED, FC, NL
+from utils import parse_args, DATA_DIR, MODEL, PRETRAINED, FC, NL, RL
 
 
 def get_heatmap(tensor):
@@ -66,6 +66,7 @@ def main():
     args = parse_args()
     data_dir, model_path = args[DATA_DIR], args[MODEL]
     fc = args[FC]
+    rl = args[RL]
     pretrained = args[PRETRAINED]
     nl = args[NL]
 
@@ -82,7 +83,7 @@ def main():
 
     # Loading model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = NormalizingFlowModel(get_backbone_resnet(wide_resnet50_2, 1, 1024, fc, pretrained), fc, nl)
+    model = NormalizingFlowModel(get_backbone_resnet(wide_resnet50_2, 1, 1024, fc, pretrained, rl), fc, nl)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
 
