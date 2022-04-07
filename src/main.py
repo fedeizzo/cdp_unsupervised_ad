@@ -137,7 +137,7 @@ def main():
     train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
 
     # Resnet Backbone
-    resnet = get_backbone_resnet(wide_resnet50_2, 1024, fc, pretrained)
+    resnet = get_backbone_resnet(wide_resnet50_2, 1, 1024, fc, pretrained)
 
     # Getting the flow model
     if model_path is not None and os.path.isfile(model_path):

@@ -82,7 +82,7 @@ def main():
 
     # Loading model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = NormalizingFlowModel(get_backbone_resnet(wide_resnet50_2, 1024, fc, pretrained), fc, nl)
+    model = NormalizingFlowModel(get_backbone_resnet(wide_resnet50_2, 1, 1024, fc, pretrained), fc, nl)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
 

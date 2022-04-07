@@ -18,8 +18,8 @@ def adjust_resnet_input(resnet_fn, in_channels, pretrained=False):
     return resnet
 
 
-def get_backbone_resnet(resnet_fn, resnet_out_channels, backbone_out_channels, pretrained):
-    resnet = adjust_resnet_input(resnet_fn, in_channels=1, pretrained=pretrained)
+def get_backbone_resnet(resnet_fn, resnet_in_channels, resnet_out_channels, backbone_out_channels, pretrained):
+    resnet = adjust_resnet_input(resnet_fn, in_channels=resnet_in_channels, pretrained=pretrained)
     modules = list(resnet.children())[:-3]
     modules.append(nn.Conv2d(resnet_out_channels, backbone_out_channels, (1, 1)))
     resnet = nn.Sequential(*modules)
