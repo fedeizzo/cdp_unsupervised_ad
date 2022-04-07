@@ -5,7 +5,7 @@ python3 -u \
   --data ${HOME}/cdp_fastflow/datasets/mvtec_anomaly_detection \
   --category bottle \
   --model ${HOME}/cdp_fastflow/flow_model_sd.pt \
-  --epochs 500 \
+  --epochs 1000 \
   --bs 16 \
   --lr 0.0001 \
   --tp 0.3 \
