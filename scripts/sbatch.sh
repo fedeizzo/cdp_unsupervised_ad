@@ -16,8 +16,10 @@ module load Python/3.8.6
 # Installing torchvision in a Python Virtual environment
 # virtualenv ~/cdp_fastflow/venv
 . ~/cdp_fastflow/venv/bin/activate
+# ~/cdp_fastflow/venv/bin/python -m pip install --upgrade pip
 # pip install numpy matplotlib opencv-python
-# pip install torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio==0.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html
+# pip install torch
+# pip install albumentations anomalib
 # pip list
 # pip install -r ~/cdp_fastflow/requirements.txt
 

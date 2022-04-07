@@ -38,7 +38,7 @@ def train_flow_model(train_loader, backbone, fc, n_layers, n_epochs, lr, freeze,
     for epoch in range(n_epochs):
         loss = 0.0
         for batch in train_loader:
-            x = batch["images"].to(device)
+            x = batch["image"].to(device)
             _, o, log_det_j = flow_model(x)
             batch_loss = torch.mean(torch.mean(0.5 * o ** 2, dim=[1, 2, 3]) - log_det_j)
 
@@ -70,7 +70,7 @@ def test_flow_model(flow_model, test_loader, device):
     with torch.no_grad():
         for batch in test_loader:
             labels = [ip.split("/")[-2] for ip in batch["image_path"]]
-            images = batch["images"].to(device)
+            images = batch["image"].to(device)
 
             _, out, _ = flow_model(images)
             scores = torch.mean(0.5 * out ** 2, dim=[1, 2, 3])
