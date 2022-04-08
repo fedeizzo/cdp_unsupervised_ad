@@ -77,7 +77,7 @@ def test_flow_model(flow_model, test_loader, device):
 
             for label, score in zip(labels, scores):
                 try:
-                    all_scores[label].append(scores)
+                    all_scores[label].append(score)
                 except Exception:
                     all_scores[label] = [score]
 

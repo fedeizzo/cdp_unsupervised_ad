@@ -220,16 +220,16 @@ def main():
     """Study the dataset in terms of pearson correlation in the input space."""
     import matplotlib.pyplot as plt
 
-    t_dir = './../../1x1/templates'
+    t_dir = './../../datasets/1x1/templates'
     x_dirs = [
-        './../../1x1/originals_55',
-        './../../1x1/originals_76'
+        './../../datasets/1x1/originals_55',
+        './../../datasets/1x1/originals_76'
     ]
     f_dirs = [
-        './../../1x1/fakes_55_55',
-        './../../1x1/fakes_55_76',
-        './../../1x1/fakes_76_55',
-        './../../1x1/fakes_76_76'
+        './../../datasets/1x1/fakes_55_55',
+        './../../datasets/1x1/fakes_55_76',
+        './../../datasets/1x1/fakes_76_55',
+        './../../datasets/1x1/fakes_76_76'
     ]
 
     ds = CDPDataset(
