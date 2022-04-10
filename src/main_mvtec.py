@@ -17,7 +17,10 @@ from utils import *
 
 
 def load_data(data_dir, category, bs):
-    transform = A.Compose([A.Resize(224, 224), A.Normalize(), ToTensorV2()])
+    transform = A.Compose([
+        A.Resize(224, 224),
+        A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ToTensorV2()])
     train_set = MVTec(data_dir, category, pre_process=transform, is_train=True)
     test_set = MVTec(data_dir, category, pre_process=transform, is_train=False)
 
