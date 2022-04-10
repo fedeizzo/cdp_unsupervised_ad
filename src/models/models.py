@@ -141,6 +141,7 @@ class NormalizingFlowModel(nn.Module):
         if freeze_backbone:
             for param in self.backbone.parameters():
                 param.requires_grad = False
+            self.backbone = self.backbone.eval()
 
     def forward(self, x):
         # Checking dimensionality
