@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task 1
 #SBATCH --mem-per-cpu 20000
 #SBATCH --partition shared-gpu
-#SBATCH --gpus=1
+#SBATCH --gpus=titan:1
 #SBATCH --time 11:55:00
 
 # Loading required modules
