@@ -9,7 +9,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 from data.cdp_dataset import get_split
 
 
-def load_cdp_data(data_dir, tp, bs):
+def load_cdp_data(data_dir, tp, bs, return_diff=False, return_stack=False, load=True):
     t_dir = os.path.join(data_dir, 'templates')
     # TODO: Multiple models for each original
     # x_dirs = [os.path.join(data_dir, 'originals_55'), os.path.join(data_dir, 'originals_76')]
@@ -18,7 +18,15 @@ def load_cdp_data(data_dir, tp, bs):
               os.path.join(data_dir, 'fakes_76_55'), os.path.join(data_dir, 'fakes_76_76')]
 
     n_orig, n_fakes = len(x_dirs), len(f_dirs)
-    train_set, _, test_set = get_split(t_dir, x_dirs, f_dirs, train_percent=tp, val_percent=0)
+    train_set, _, test_set = get_split(t_dir,
+                                       x_dirs,
+                                       f_dirs,
+                                       train_percent=tp,
+                                       val_percent=0,
+                                       return_diff=return_diff,
+                                       return_stack=return_stack,
+                                       load=load
+                                       )
     train_loader, test_loader = DataLoader(train_set, batch_size=bs, shuffle=True), DataLoader(test_set, batch_size=bs)
 
     return train_loader, test_loader, n_orig, n_fakes

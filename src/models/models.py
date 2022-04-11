@@ -133,10 +133,11 @@ class AffineCoupling(nn.Module):
 
 
 class NormalizingFlowModel(nn.Module):
-    def __init__(self, backbone, in_channels, n_layers=16, freeze_backbone=True):
+    def __init__(self, backbone, in_channels, n_layers=16, freeze_backbone=True, permute=True):
         super(NormalizingFlowModel, self).__init__()
 
         self.backbone = backbone
+        self.permute = permute
         self.affine_layers = nn.ModuleList([AffineCoupling(in_channels) for _ in range(n_layers)])
         if freeze_backbone:
             for param in self.backbone.parameters():
@@ -164,9 +165,10 @@ class NormalizingFlowModel(nn.Module):
             out, log_det_j = al(out)
             sum_log_det_js += log_det_j
 
-            # Permutation of channels
-            first_half, second_half = out.chunk(2, 1)
-            out = torch.cat((second_half, first_half), dim=1)
+            if self.permute:
+                # Permutation of channels
+                first_half, second_half = out.chunk(2, 1)
+                out = torch.cat((second_half, first_half), dim=1)
         return out, sum_log_det_js
 
     def reverse(self, out):
