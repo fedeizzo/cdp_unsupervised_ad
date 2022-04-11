@@ -3,31 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from torch.optim import Adam
-from torch.utils.data import DataLoader
 
 from torchvision.models.resnet import resnet50, wide_resnet50_2
 
-from anomalib.data.mvtec import MVTec
-import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
-
+from data.utils import load_mvtec_data
 from models.models import NormalizingFlowModel
 from models.utils import get_backbone_resnet
 from utils import *
-
-
-def load_data(data_dir, category, bs):
-    transform = A.Compose([
-        A.Resize(224, 224),
-        A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ToTensorV2()])
-    train_set = MVTec(data_dir, category, pre_process=transform, is_train=True)
-    test_set = MVTec(data_dir, category, pre_process=transform, is_train=False)
-
-    train_loader = DataLoader(train_set, batch_size=bs, shuffle=True)
-    test_loader = DataLoader(test_set, batch_size=bs, shuffle=False)
-
-    return train_loader, test_loader
 
 
 def train_flow_model(train_loader, backbone, fc, n_layers, n_epochs, lr, freeze, device):
@@ -43,7 +25,7 @@ def train_flow_model(train_loader, backbone, fc, n_layers, n_epochs, lr, freeze,
         for batch in train_loader:
             x = batch["image"].to(device)
             _, o, log_det_j = flow_model(x)
-            batch_loss = torch.mean(torch.mean(0.5 * o ** 2, dim=[1, 2, 3]) - log_det_j)
+            batch_loss = torch.mean(0.5 * torch.sum(o ** 2, dim=[1, 2, 3]) - log_det_j)
 
             # Optimizing
             optimizer.zero_grad()
@@ -123,7 +105,7 @@ def main():
     print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
 
     # Loading data
-    train_loader, test_loader = load_data(data_dir, category, bs)
+    train_loader, test_loader = load_mvtec_data(data_dir, category, bs)
 
     # Resnet Backbone
     resnet = get_backbone_resnet(wide_resnet50_2, 3, 1024, fc, pretrained, rl)

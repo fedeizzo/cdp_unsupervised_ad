@@ -8,24 +8,10 @@ from torch.utils.data import DataLoader
 from torchvision.models.resnet import resnet50, wide_resnet50_2
 
 from data.cdp_dataset import get_split
+from data.utils import load_cdp_data
 from models.models import NormalizingFlowModel
 from models.utils import get_backbone_resnet
 from utils import *
-
-
-def load_data(data_dir, tp, bs):
-    t_dir = os.path.join(data_dir, 'templates')
-    # TODO: Multiple models for each original
-    # x_dirs = [os.path.join(data_dir, 'originals_55'), os.path.join(data_dir, 'originals_76')]
-    x_dirs = [os.path.join(data_dir, 'originals_55')]
-    f_dirs = [os.path.join(data_dir, 'fakes_55_55'), os.path.join(data_dir, 'fakes_55_76'),
-              os.path.join(data_dir, 'fakes_76_55'), os.path.join(data_dir, 'fakes_76_76')]
-
-    n_orig, n_fakes = len(x_dirs), len(f_dirs)
-    train_set, _, test_set = get_split(t_dir, x_dirs, f_dirs, train_percent=tp, val_percent=0)
-    train_loader, test_loader = DataLoader(train_set, batch_size=bs, shuffle=True), DataLoader(test_set, batch_size=bs)
-
-    return train_loader, test_loader, n_orig, n_fakes
 
 
 def train_flow_model(train_loader, backbone, fc, n_layers, n_epochs, lr, freeze, n_orig, device):
@@ -135,7 +121,7 @@ def main():
     print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
 
     # Loading data
-    train_loader, test_loader, n_orig, n_fakes = load_data(data_dir, tp, bs)
+    train_loader, test_loader, n_orig, n_fakes = load_cdp_data(data_dir, tp, bs)
 
     # Resnet Backbone
     resnet = get_backbone_resnet(wide_resnet50_2, 1, 1024, fc, pretrained, rl)
