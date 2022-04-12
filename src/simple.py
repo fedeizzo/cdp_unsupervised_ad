@@ -28,7 +28,7 @@ def train_simple_model(nf_model, n_epochs, train_loader, optim, device):
 
             optim.zero_grad()
             batch_loss.backward()
-            torch.nn.utils.clip_grad_norm_(nf_model.parameters(), 100)
+            # torch.nn.utils.clip_grad_norm_(nf_model.parameters(), 100)
             optim.step()
 
             epoch_loss += batch_loss.item() / len(originals)
@@ -63,7 +63,7 @@ def test_simple_model(nf_model, test_loader, n_fakes, device):
     # Plotting anomaly scores
     plt.plot(np.arange(len(original_anomaly_scores)), original_anomaly_scores, label="Originals")
 
-    for i, fake_anomaly_scores in enumerate(fakes_anomaly_scores):
+    for f_idx, fake_anomaly_scores in enumerate(fakes_anomaly_scores):
         plt.plot(np.arange(len(fake_anomaly_scores)), fake_anomaly_scores, label=f"Fakes {f_idx + 1}")
 
     plt.title("Anomaly score for test CDPs")
@@ -83,6 +83,7 @@ def main():
     lr = args[LR]
     tp = args[TP]
     bs = args[BS]
+    nl = args[NL]
     seed = args[SEED]
 
     # Setting reproducibility
@@ -93,12 +94,12 @@ def main():
     print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
 
     # Loading CDP data
-    pre_transform = ComposeAll([ToTensorAll(), NormalizeAll(), CenterCropAll(20)])
+    pre_transform = ComposeAll([ToTensorAll(), NormalizeAll(), CenterCropAll(684//3)])
     train_loader, test_loader, n_original, n_fakes = load_cdp_data(
         data_dir, tp, bs, return_stack=True, train_pre_transform=pre_transform, test_pre_transform=pre_transform)
 
     # Creating Normalizing Flow (NF) model
-    nf_model = NormalizingFlowModel(nn.Identity(), 2, n_layers=16, freeze_backbone=False, permute=True).to(device)
+    nf_model = NormalizingFlowModel(nn.Identity(), 2, n_layers=nl, freeze_backbone=False, permute=True).to(device)
     optim = Adam(nf_model.parameters(), lr)
 
     # Training model if not found
