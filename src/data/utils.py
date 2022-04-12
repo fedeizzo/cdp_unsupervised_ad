@@ -7,9 +7,20 @@ import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
 from data.cdp_dataset import get_split
+from data.transforms import NormalizedTensorTransform, AllRandomTransforms
 
 
-def load_cdp_data(data_dir, tp, bs, return_diff=False, return_stack=False, load=True):
+def load_cdp_data(data_dir,
+                  tp,
+                  bs,
+                  train_pre_transform=NormalizedTensorTransform(),
+                  train_post_transform=None,
+                  test_pre_transform=NormalizedTensorTransform(),
+                  test_post_transform=None,
+                  return_diff=False,
+                  return_stack=False,
+                  load=True
+                  ):
     t_dir = os.path.join(data_dir, 'templates')
     # TODO: Multiple models for each original
     # x_dirs = [os.path.join(data_dir, 'originals_55'), os.path.join(data_dir, 'originals_76')]
@@ -23,6 +34,10 @@ def load_cdp_data(data_dir, tp, bs, return_diff=False, return_stack=False, load=
                                        f_dirs,
                                        train_percent=tp,
                                        val_percent=0,
+                                       train_pre_transform=train_pre_transform,
+                                       train_post_transform=train_post_transform,
+                                       test_pre_transform=test_pre_transform,
+                                       test_post_transform=test_post_transform,
                                        return_diff=return_diff,
                                        return_stack=return_stack,
                                        load=load

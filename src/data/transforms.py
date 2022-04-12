@@ -1,10 +1,21 @@
 import torch
 import numpy as np
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, CenterCrop
 from torchvision.transforms.functional import adjust_gamma, rotate, vflip, hflip
 
 
 # Custom transforms
+class ComposeAll:
+    def __init__(self, all_transforms):
+        self.transforms = all_transforms
+
+    def __call__(self, *args):
+        result = args
+        for t in self.transforms:
+            result = t(*result)
+        return result
+
+
 class ToTensorAll:
     """Converts all of the given inputs to pytorch tensors."""
 
@@ -31,6 +42,19 @@ class NormalizeAll:
 
             assert torch.min(arg) >= 0 and torch.max(arg) <= 1
             result.append(arg)
+        return result
+
+
+class CenterCropAll:
+    """Center crops each image with the specified size"""
+
+    def __init__(self, size):
+        self.t = CenterCrop(size)
+
+    def __call__(self, *args):
+        result = []
+        for arg in args:
+            result.append(self.t(arg))
         return result
 
 

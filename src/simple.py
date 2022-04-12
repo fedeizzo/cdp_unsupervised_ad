@@ -8,6 +8,7 @@ from torch.optim import Adam
 
 from utils import *
 from data.utils import load_cdp_data
+from data.transforms import CenterCropAll, ToTensorAll, ComposeAll
 from models.models import NormalizingFlowModel
 
 DEFAULT_FILE_PATH = "simple_flow_model_sd.pt"
@@ -50,13 +51,13 @@ def test_simple_model(nf_model, test_loader, n_fakes, device):
             original = batch["originals"][0].to(device)
 
             _, out, _ = nf_model(original)
-            original_anomaly_scores.extend(torch.sum(0.5 * out ** 2, dim=[1, 2, 3]).flatten().numpy())
+            original_anomaly_scores.extend(torch.sum(0.5 * out ** 2, dim=[1, 2, 3]).flatten().cpu().numpy())
 
             for f_idx in range(n_fakes):
                 fake = batch["fakes"][f_idx].to(device)
 
                 _, out, _ = nf_model(fake)
-                fakes_anomaly_scores[f_idx].extend(torch.sum(0.5 * out ** 2, dim=[1, 2, 3]).flatten().numpy())
+                fakes_anomaly_scores[f_idx].extend(torch.sum(0.5 * out ** 2, dim=[1, 2, 3]).flatten().cpu().numpy())
 
     # Plotting anomaly scores
     plt.plot(np.arange(len(original_anomaly_scores)), original_anomaly_scores, label="Originals")
@@ -68,6 +69,10 @@ def test_simple_model(nf_model, test_loader, n_fakes, device):
     plt.legend()
     plt.savefig("anomaly_scores.png")
 
+    # Storing anomaly scores to files
+    np.save("o_scores.npy", np.array(original_anomaly_scores))
+    np.save("f_scores.npy", np.array(fake_anomaly_scores))
+
 
 def main():
     # Program arguments
@@ -77,15 +82,22 @@ def main():
     lr = args[LR]
     tp = args[TP]
     bs = args[BS]
+    seed = args[SEED]
+
+    # Setting reproducibility
+    set_reproducibility(seed)
 
     # Program device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
 
     # Loading CDP data
-    train_loader, test_loader, n_original, n_fakes = load_cdp_data(data_dir, tp, bs, return_stack=True)
+    pre_transform = ComposeAll([ToTensorAll(), CenterCropAll(50)])
+    train_loader, test_loader, n_original, n_fakes = load_cdp_data(
+        data_dir, tp, bs, return_stack=True, train_pre_transform=pre_transform, test_pre_transform=pre_transform)
 
     # Creating Normalizing Flow (NF) model
-    nf_model = NormalizingFlowModel(nn.Identity(), 2, n_layers=16, freeze_backbone=False, permute=False).to(device)
+    nf_model = NormalizingFlowModel(nn.Identity(), 2, n_layers=16, freeze_backbone=False, permute=True).to(device)
     optim = Adam(nf_model.parameters(), lr)
 
     # Training model if not found
@@ -98,6 +110,7 @@ def main():
 
     # Evaluating model
     test_simple_model(nf_model, test_loader, n_fakes, device)
+    print("Program finished successfully!")
 
 
 if __name__ == '__main__':
