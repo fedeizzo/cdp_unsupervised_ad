@@ -8,7 +8,7 @@ from torch.optim import Adam
 
 from utils import *
 from data.utils import load_cdp_data
-from data.transforms import CenterCropAll, ToTensorAll, ComposeAll
+from data.transforms import CenterCropAll, ToTensorAll, NormalizeAll, ComposeAll
 from models.models import NormalizingFlowModel
 
 DEFAULT_FILE_PATH = "simple_flow_model_sd.pt"
@@ -28,10 +28,11 @@ def train_simple_model(nf_model, n_epochs, train_loader, optim, device):
 
             optim.zero_grad()
             batch_loss.backward()
+            torch.nn.utils.clip_grad_norm_(nf_model.parameters(), 100)
             optim.step()
 
             epoch_loss += batch_loss.item() / len(originals)
-        epoch_str = f"Epoch {epoch + 1}/{n_epochs} loss: {epoch_loss}"
+        epoch_str = f"Epoch {epoch + 1}/{n_epochs} loss: {epoch_loss:.2f}"
 
         if epoch_loss < best_loss:
             best_loss = epoch_loss
@@ -92,7 +93,7 @@ def main():
     print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
 
     # Loading CDP data
-    pre_transform = ComposeAll([ToTensorAll(), CenterCropAll(50)])
+    pre_transform = ComposeAll([ToTensorAll(), NormalizeAll(), CenterCropAll(20)])
     train_loader, test_loader, n_original, n_fakes = load_cdp_data(
         data_dir, tp, bs, return_stack=True, train_pre_transform=pre_transform, test_pre_transform=pre_transform)
 
