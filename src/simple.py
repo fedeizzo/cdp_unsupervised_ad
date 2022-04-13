@@ -72,7 +72,7 @@ def test_simple_model(nf_model, test_loader, n_fakes, device):
 
     # Storing anomaly scores to files
     np.save("o_scores.npy", np.array(original_anomaly_scores))
-    np.save("f_scores.npy", np.array(fake_anomaly_scores))
+    np.save("f_scores.npy", np.array(fakes_anomaly_scores))
 
 
 def main():
@@ -85,6 +85,7 @@ def main():
     bs = args[BS]
     nl = args[NL]
     seed = args[SEED]
+    print(args)
 
     # Setting reproducibility
     set_reproducibility(seed)
@@ -94,7 +95,7 @@ def main():
     print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
 
     # Loading CDP data
-    pre_transform = ComposeAll([ToTensorAll(), NormalizeAll(), CenterCropAll(684//3)])
+    pre_transform = ComposeAll([ToTensorAll(), NormalizeAll(), CenterCropAll(50)])
     train_loader, test_loader, n_original, n_fakes = load_cdp_data(
         data_dir, tp, bs, return_stack=True, train_pre_transform=pre_transform, test_pre_transform=pre_transform)
 
