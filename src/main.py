@@ -9,7 +9,7 @@ from torchvision.models.resnet import resnet50, wide_resnet50_2
 
 from data.cdp_dataset import get_split
 from data.utils import load_cdp_data
-from models.models import NormalizingFlowModel
+from models.normalizing_flows import NormalizingFlowModel
 from models.utils import get_backbone_resnet
 from utils import *
 
@@ -103,6 +103,7 @@ def main():
     tp = args[TP]  # Training data percentage
     fc = args[FC]  # Features channels
     n_layers = args[NL]  # Number of affine coupling layers
+    originals = args[ORIGINALS]
     rl = args[RL]
     pretrained = args[PRETRAINED]  # Whether backbone will be pre-trained on ImageNet or not
     fb = args[FREEZE_BACKBONE]
@@ -117,11 +118,10 @@ def main():
     set_reproducibility(seed)
 
     # Device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
+    device = get_device()
 
     # Loading data
-    train_loader, test_loader, n_orig, n_fakes = load_cdp_data(data_dir, tp, bs)
+    train_loader, _, test_loader, n_orig, n_fakes = load_cdp_data(data_dir, tp, 0, bs, originals=originals)
 
     # Resnet Backbone
     resnet = get_backbone_resnet(wide_resnet50_2, 1, 1024, fc, pretrained, rl)

@@ -13,7 +13,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 from anomalib.data.mvtec import MVTec
 
 from data.cdp_dataset import CDPDataset
-from models.models import NormalizingFlowModel
+from models.normalizing_flows import NormalizingFlowModel
 from models.utils import get_backbone_resnet
 from utils import parse_args, DATA_DIR, MODEL, PRETRAINED, FC, NL, RL, CATEGORY
 

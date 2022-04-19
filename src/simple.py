@@ -9,7 +9,7 @@ from torch.optim import Adam
 from utils import *
 from data.utils import load_cdp_data
 from data.transforms import CenterCropAll, ToTensorAll, NormalizeAll, ComposeAll
-from models.models import NormalizingFlowModel
+from models.normalizing_flows import NormalizingFlowModel
 
 DEFAULT_FILE_PATH = "simple_flow_model_sd.pt"
 
@@ -79,6 +79,7 @@ def main():
     # Program arguments
     args = parse_args()
     data_dir = args[DATA_DIR]
+    originals = args[ORIGINALS]
     n_epochs = args[EPOCHS]
     lr = args[LR]
     tp = args[TP]
@@ -91,13 +92,20 @@ def main():
     set_reproducibility(seed)
 
     # Program device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
+    device = get_device()
 
     # Loading CDP data
     pre_transform = ComposeAll([ToTensorAll(), NormalizeAll(), CenterCropAll(50)])
-    train_loader, test_loader, n_original, n_fakes = load_cdp_data(
-        data_dir, tp, bs, return_stack=True, train_pre_transform=pre_transform, test_pre_transform=pre_transform)
+    train_loader, _, test_loader, n_original, n_fakes = load_cdp_data(
+        data_dir,
+        tp,
+        0,
+        bs,
+        return_stack=True,
+        train_pre_transform=pre_transform,
+        test_pre_transform=pre_transform,
+        originals=originals
+    )
 
     # Creating Normalizing Flow (NF) model
     nf_model = NormalizingFlowModel(nn.Identity(), 2, n_layers=nl, freeze_backbone=False, permute=True).to(device)

@@ -7,7 +7,7 @@ from torch.optim import Adam
 from torchvision.models.resnet import resnet50, wide_resnet50_2
 
 from data.utils import load_mvtec_data
-from models.models import NormalizingFlowModel
+from models.normalizing_flows import NormalizingFlowModel
 from models.utils import get_backbone_resnet
 from utils import *
 
@@ -101,8 +101,7 @@ def main():
     set_reproducibility(seed)
 
     # Device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else ""))
+    device = get_device()
 
     # Loading data
     train_loader, test_loader = load_mvtec_data(data_dir, category, bs)
