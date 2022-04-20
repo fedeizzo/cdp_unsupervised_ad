@@ -7,9 +7,11 @@ from sklearn.metrics import roc_auc_score
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
+
 from utils import *
 from models.t2x import get_t2x_model
 from data.utils import load_cdp_data
+from data.transforms import *
 
 DEFAULT_MODEL_PATH = "model_sd.pt"
 
@@ -88,7 +90,7 @@ def train(model, optim, train_loader, val_loader, device, epochs, model_path=DEF
 
             val_loss += torch.mean((o_hat - o) ** 2) / len(val_loader)
 
-        epoch_str = f"Epoch {epoch + 1}/{epochs}\tTrain loss: {epoch_loss:.2f}\tVal loss: {val_loss:.2f}"
+        epoch_str = f"Epoch {epoch + 1}/{epochs}\tTrain loss: {epoch_loss:.3f}\tVal loss: {val_loss:.3f}"
         if val_loss < best_loss:
             best_loss = val_loss
             torch.save(model.state_dict(), model_path)
@@ -157,7 +159,14 @@ def main():
     optim = Adam(model.parameters(), lr=lr)
 
     # Loading data
-    train_loader, val_loader, test_loader, _, _ = load_cdp_data(base_dir, tp, vp, bs, originals=originals)
+    transform = ComposeAll([
+        ToTensorAll(),
+        CenterCropAll(512),
+        NormalizeAll()
+    ])
+    train_loader, val_loader, test_loader, _, _ = load_cdp_data(
+        base_dir, tp, vp, bs, train_pre_transform=transform, val_pre_transform=transform, test_pre_transform=transform,
+        originals=originals)
 
     # Training loop
     if not os.path.isfile(model_path):
