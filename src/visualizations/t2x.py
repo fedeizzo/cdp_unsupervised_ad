@@ -52,6 +52,7 @@ def visualize_anomaly_locations(model, loader, device, n_batches=1):
         for fake in batch["fakes"]:
             for idx, (f, e) in enumerate(zip(fake, estimate)):
                 show_cdps([e, f, (e - f) ** 2], ["Estimated", "Fake", "Anomaly Map"])
+            break
 
         if i + 1 >= n_batches:
             break
@@ -70,8 +71,7 @@ def main():
     device = get_device()
 
     # Loading model
-    model = get_t2x_model().to(device)
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    model = torch.load(model_path, map_location=device).to(device)
     model.eval()
 
     # Loading data
