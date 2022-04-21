@@ -95,7 +95,7 @@ def train(model, optim, train_loader, val_loader, device, epochs, model_path=DEF
         print(epoch_str)
 
 
-def test(model, test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly_fn=anomaly_fn_mse):
+def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly_fn=anomaly_fn_mse, dir="./"):
     model = torch.load(model_path, map_location=device)
     model.eval()
 
@@ -113,8 +113,8 @@ def test(model, test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, 
             f_scores[idx].extend(anomaly_fn(f, o_hat))
 
     o_scores, f_scores = np.array(o_scores), np.array(f_scores)
-    np.save("o_scores.npy", o_scores)
-    np.save("f_scores.npy", f_scores)
+    np.save(os.path.join(dir, "o_scores.npy"), o_scores)
+    np.save(os.path.join(dir, "f_scores.npy"), f_scores)
 
     n_bins = len(o_scores) // 4
     plt.hist(o_scores, bins=n_bins, label="Originals")
@@ -123,13 +123,13 @@ def test(model, test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, 
         plt.hist(f_score, bins=n_bins, label=f_name)
         auc_roc_scores.append(get_roc_auc_score(o_scores, f_score))
 
-    np.save("auc_scores.npy", np.array(auc_roc_scores))
+    np.save(os.path.join(dir, "auc_scores.npy"), np.array(auc_roc_scores))
 
     plt.legend()
     plt.xlabel("Anomaly score")
     plt.ylabel("Density")
     plt.title(title)
-    plt.savefig("anomaly_scores.png")
+    plt.savefig(os.path.join(dir, "anomaly_scores.png"))
 
 
 def main():
@@ -137,6 +137,7 @@ def main():
     args = parse_args()
     n_epochs = args[EPOCHS]
     base_dir = args[DATA_DIR]
+    result_dir = args[RESULT_DIR]
     originals = args[ORIGINALS]
     lr = args[LR]
     bs = args[BS]
@@ -146,14 +147,13 @@ def main():
     print(args)
 
     if model_path is None:
-        model_path = DEFAULT_MODEL_PATH
+        model_path = os.path.join(result_dir, DEFAULT_MODEL_PATH)
+
+    # Creating result directory
+    create_dir(result_dir)
 
     # Getting program device
     device = get_device()
-
-    # Creating one-convolution model
-    model = get_t2x_model().to(device)
-    optim = Adam(model.parameters(), lr=lr)
 
     # Loading data
     train_loader, val_loader, test_loader, _, _ = load_cdp_data(base_dir, tp, vp, bs, originals=originals)
@@ -161,12 +161,18 @@ def main():
     # Training loop
     if not os.path.isfile(model_path):
         print(f"Model at {model_path} not found: Training a new model.")
+
+        # Creating one-convolution model
+        model = get_t2x_model().to(device)
+        optim = Adam(model.parameters(), lr=lr)
+
+        # Training loop
         train(model, optim, train_loader, val_loader, device, n_epochs, model_path)
 
     # Testing loop
     a_fn = anomaly_fn_mse
     print(f"\n\nTesting trained model at {model_path}")
-    test(model, test_loader, device, model_path, f"Originals {originals} and fakes ({a_fn.__name__})", a_fn)
+    test(test_loader, device, model_path, f"Originals {originals} and fakes ({a_fn.__name__})", a_fn, result_dir)
 
 
 if __name__ == '__main__':
