@@ -1,12 +1,9 @@
 import os
 
-import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_auc_score
 
 from torch.optim import Adam
-from torch.utils.data import DataLoader
-
 
 from utils import *
 from models.t2x import get_t2x_model

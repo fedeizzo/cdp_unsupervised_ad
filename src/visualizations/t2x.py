@@ -1,14 +1,8 @@
-import matplotlib.figure
-import numpy as np
 import matplotlib.pyplot as plt
 
-import torch
-import torch.nn as nn
 
 from utils import *
 from data.utils import load_cdp_data
-from data.cdp_dataset import CDPDataset
-from models.t2x import get_t2x_model
 
 
 def show_cdps(cdps, titles):
@@ -52,7 +46,6 @@ def visualize_anomaly_locations(model, loader, device, n_batches=1):
         for fake in batch["fakes"]:
             for idx, (f, e) in enumerate(zip(fake, estimate)):
                 show_cdps([e, f, (e - f) ** 2], ["Estimated", "Fake", "Anomaly Map"])
-            break
 
         if i + 1 >= n_batches:
             break
@@ -75,7 +68,7 @@ def main():
     model.eval()
 
     # Loading data
-    _, _, loader, _, _ = load_cdp_data(data_dir, 0, 0, 4, originals=originals)
+    _, _, loader, _, _ = load_cdp_data(data_dir, 0, 0, 1, originals=originals)
 
     # Showing printing simulation
     visualize_print_simulation(model, loader, device)

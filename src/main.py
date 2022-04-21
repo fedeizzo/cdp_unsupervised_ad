@@ -3,11 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from torch.optim import Adam
-from torch.utils.data import DataLoader
 
 from torchvision.models.resnet import resnet50, wide_resnet50_2
 
-from data.cdp_dataset import get_split
 from data.utils import load_cdp_data
 from models.normalizing_flows import NormalizingFlowModel
 from models.utils import get_backbone_resnet

@@ -1,15 +1,13 @@
 # Imports
 import os
-from copy import copy
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-from data.transforms import AllRandomTransforms, NormalizedTensorTransform, ToTensorAll
+from data.transforms import AllRandomTransforms, NormalizedTensorTransform
 
 # Definitions
 # Bad indices from dataset A (5x5 codes)
