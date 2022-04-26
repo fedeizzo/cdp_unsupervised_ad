@@ -27,4 +27,5 @@ module load Python/3.8.6
 # srun ${HOME}/cdp_fastflow/scripts/run_main.sh
 # srun ${HOME}/cdp_fastflow/scripts/run_main_mvtec.sh
 # srun ${HOME}/cdp_fastflow/scripts/run_simple.sh
-srun ${HOME}/cdp_fastflow/scripts/run_t2x.sh
+# srun ${HOME}/cdp_fastflow/scripts/run_t2x.sh
+srun ${HOME}/cdp_fastflow/scripts/run_t2x_nf.sh
