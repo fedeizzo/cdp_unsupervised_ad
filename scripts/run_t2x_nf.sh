@@ -2,7 +2,8 @@
 
 #ORIGINALS=55
 ORIGINALS=76
-mkdir ${HOME}/cdp_fastflow/results
+mkdir ${HOME}/cdp_fastflow/results/
+mkdir ${HOME}/cdp_fastflow/results/${ORIGINALS}
 
 for SEED in 0 1 2 3 4
 do
