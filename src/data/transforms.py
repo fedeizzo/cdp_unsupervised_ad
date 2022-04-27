@@ -35,10 +35,8 @@ class NormalizeAll:
     def __call__(self, *args):
         result = []
         for arg in args:
-            if torch.max(torch.abs(arg)) > 1:
-                # Tiff images are in range [-2**15, 2**15) and are to be normalized between [0, 1).
-                arg = arg - torch.min(arg)
-                arg = arg / torch.max(arg)
+            arg = arg - torch.min(arg)
+            arg = arg / torch.max(arg)
 
             assert torch.min(arg) >= 0 and torch.max(arg) <= 1
             result.append(arg)
