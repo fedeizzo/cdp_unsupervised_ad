@@ -44,10 +44,11 @@ class AffineCoupling(nn.Module):
 
     def forward(self, x):
         x1 = x * self.mask
-        st = (1 - self.mask) * self.network(x1)
+        st = self.network(x1)
         s, t = st.chunk(2, 1)
 
-        s = torch.sigmoid(s + 2)
+        s = (1 - self.mask) * torch.sigmoid(s + 2)
+        t = (1 - self.mask) * t
 
         out = x1 + (x * s + t)
         log_det = torch.sum(torch.log(s), dim=[1, 2, 3])
@@ -83,6 +84,8 @@ def train(model, optim, train_loader, val_loader, n_epochs, device, result_dir):
     model = model.to(device)
     model.train()
 
+    d_sqrt = np.sqrt(np.prod(train_loader.dataset[0]["template"].shape))
+
     best_val_loss = float("inf")
     for epoch in range(n_epochs):
         train_loss = 0.0
@@ -90,7 +93,7 @@ def train(model, optim, train_loader, val_loader, n_epochs, device, result_dir):
             t, x = batch["template"].to(device), batch["originals"][0].to(device)
             out, log_det = model(t)
 
-            log_prob = torch.sum((out - x) ** 2, dim=[1, 2, 3])
+            log_prob = torch.sum((out - x) ** 2 / d_sqrt, dim=[1, 2, 3])
 
             optim.zero_grad()
             batch_loss = torch.mean(log_prob - log_det)
@@ -104,7 +107,7 @@ def train(model, optim, train_loader, val_loader, n_epochs, device, result_dir):
             t, x = batch["template"].to(device), batch["originals"][0].to(device)
             out, log_det = model(t)
 
-            log_prob = torch.sum((out - x) ** 2, dim=[1, 2, 3])
+            log_prob = torch.sum((out - x) ** 2 / d_sqrt, dim=[1, 2, 3])
             batch_loss = torch.mean(log_prob - log_det)
 
             val_loss += batch_loss.item() / len(log_prob)
@@ -123,16 +126,18 @@ def test(test_loader, device, result_dir):
     model = torch.load(os.path.join(result_dir, DEFAULT_MODEL_PATH), map_location=device)
     model.eval()
 
+    d_sqrt = np.sqrt(np.prod(test_loader.dataset[0]["template"].shape))
+
     o_scores, f_scores = [], [[], [], [], []]
     for batch in test_loader:
         t, x = batch["template"].to(device), batch["originals"][0].to(device)
         estimate, _ = model(t)
 
-        o_scores.extend([s.item() for s in torch.mean((estimate - x)**2, dim=[1, 2, 3])])
+        o_scores.extend([s.item() for s in torch.mean((estimate - x) ** 2 / d_sqrt, dim=[1, 2, 3])])
 
         for i, f in enumerate(batch["fakes"]):
             f = f.to(device)
-            f_scores[i].extend([s.item() for s in torch.mean((estimate - f)**2, dim=[1, 2, 3])])
+            f_scores[i].extend([s.item() for s in torch.mean((estimate - f) ** 2 / d_sqrt, dim=[1, 2, 3])])
 
     np.save("o_scores.npy", np.array(o_scores))
     np.save("f_scores.npy", np.array(f_scores))
