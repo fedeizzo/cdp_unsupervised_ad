@@ -51,7 +51,7 @@ class AffineCoupling(nn.Module):
         t = (1 - self.mask) * t
 
         out = x1 + (x * s + t)
-        log_det = torch.sum(torch.log(s), dim=[1, 2, 3])
+        log_det = torch.sum(torch.log(s + self.mask), dim=[1, 2, 3])
 
         return out, log_det
 
