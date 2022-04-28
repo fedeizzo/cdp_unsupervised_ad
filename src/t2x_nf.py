@@ -66,7 +66,7 @@ class AffineCoupling(nn.Module):
         t = (1 - self.mask) * t
 
         x2 = (x2 - t) / (s + self.mask)
-        log_det = 1 / torch.sum(torch.log(s + self.mask), dim=[1, 2, 3])
+        log_det = torch.sum(torch.log(s + self.mask), dim=[1, 2, 3])
 
         return x1 + x2, log_det
 
@@ -76,7 +76,7 @@ class AffineCoupling(nn.Module):
 
 
 class CDPNF(nn.Module):
-    def __init__(self, n_steps, network_fn, device, h=684, w=684):
+    def __init__(self, n_steps, network_fn, device, h=684, w=684, zero_init=False):
         super(CDPNF, self).__init__()
         self.mask_a, self.mask_b = make_grid_masks(h, w, device)
         self.n_steps = n_steps
@@ -84,8 +84,9 @@ class CDPNF(nn.Module):
             AffineCoupling(self.mask_a if i % 2 == 0 else self.mask_b, network_fn) for i in range(n_steps)
         ])
 
-        for l in self.layers:
-            l.zero_init()
+        if zero_init:
+            for l in self.layers:
+                l.zero_init()
 
     def forward(self, x):
         out, log_det = x, 0.0
