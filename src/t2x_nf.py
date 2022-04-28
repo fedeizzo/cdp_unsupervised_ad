@@ -147,7 +147,7 @@ def train(model, optim, train_loader, val_loader, n_epochs, device, result_dir):
         print(epoch_str)
 
 
-def test(test_loader, device, result_dir):
+def test(test_loader, device, result_dir, forward=True):
     model = torch.load(os.path.join(result_dir, DEFAULT_MODEL_PATH), map_location=device)
     model.eval()
 
@@ -156,13 +156,24 @@ def test(test_loader, device, result_dir):
     o_scores, f_scores = [], [[], [], [], []]
     for batch in test_loader:
         t, x = batch["template"].to(device), batch["originals"][0].to(device)
-        estimate, _ = model(t)
 
-        o_scores.extend([s.item() for s in torch.mean((estimate - x) ** 2 / d_sqrt, dim=[1, 2, 3])])
+        if forward:
+            estimate, _ = model(t)
+            o_score = [s.item() for s in torch.mean((estimate - x) ** 2 / d_sqrt, dim=[1, 2, 3])]
+        else:
+            estimate, log_det = model.backward(x)
+            o_score = [s.item() for s in torch.mean((estimate - t)**2 / d_sqrt, dim=[1, 2, 3]) - log_det]
+        o_scores.extend(o_score)
 
         for i, f in enumerate(batch["fakes"]):
             f = f.to(device)
-            f_scores[i].extend([s.item() for s in torch.mean((estimate - f) ** 2 / d_sqrt, dim=[1, 2, 3])])
+
+            if forward:
+                f_score = [s.item() for s in torch.mean((estimate - f) ** 2 / d_sqrt, dim=[1, 2, 3])]
+            else:
+                estimate, log_det = model.backward(f)
+                f_score = [s.item() for s in torch.mean((estimate - t)**2 / d_sqrt, dim=[1, 2, 3]) - log_det]
+            f_scores[i].extend(f_score)
 
     np.save(os.path.join(result_dir, "o_scores.npy"), np.array(o_scores))
     np.save(os.path.join(result_dir, "f_scores.npy"), np.array(f_scores))
