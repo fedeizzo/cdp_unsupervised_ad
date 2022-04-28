@@ -100,7 +100,7 @@ def train(model, optim, train_loader, val_loader, n_epochs, device, result_dir):
             batch_loss.backward()
             optim.step()
 
-            train_loss += batch_loss.item() / len(log_prob)
+            train_loss += batch_loss.item() * len(log_prob) / len(train_loader.dataset)
 
         val_loss = 0.0
         for batch in val_loader:
@@ -110,7 +110,7 @@ def train(model, optim, train_loader, val_loader, n_epochs, device, result_dir):
             log_prob = torch.sum((out - x) ** 2 / d_sqrt, dim=[1, 2, 3])
             batch_loss = torch.mean(log_prob - log_det)
 
-            val_loss += batch_loss.item() / len(log_prob)
+            val_loss += batch_loss.item() * len(log_prob) / len(train_loader.dataset)
 
         epoch_str = f"Epoch {epoch + 1}/{n_epochs}: " \
                     f"Train loss -> {train_loss:.2f}\t" \
@@ -139,8 +139,8 @@ def test(test_loader, device, result_dir):
             f = f.to(device)
             f_scores[i].extend([s.item() for s in torch.mean((estimate - f) ** 2 / d_sqrt, dim=[1, 2, 3])])
 
-    np.save("o_scores.npy", np.array(o_scores))
-    np.save("f_scores.npy", np.array(f_scores))
+    np.save(os.path.join(result_dir, "o_scores.npy"), np.array(o_scores))
+    np.save(os.path.join(result_dir, "f_scores.npy"), np.array(f_scores))
 
 
 def main():
