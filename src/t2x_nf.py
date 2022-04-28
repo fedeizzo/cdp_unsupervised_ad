@@ -55,6 +55,18 @@ class AffineCoupling(nn.Module):
 
         return out, log_det
 
+    def backward(self, out):
+        x1 = self.mask * out
+        x2 = out - x1
+
+        st = (1 - self.mask) * self.network(x1)
+        s, t = st.chunk(2, 1)
+        s = torch.sigmoid(s + 2)
+
+        x2 = (x2 - t) / s
+
+        return x1 + x2
+
     def zero_init(self):
         for parameter in self.parameters():
             parameter.data.zero_()
@@ -78,6 +90,14 @@ class CDPNF(nn.Module):
             out, ld = layer(out)
             log_det += ld
         return out, log_det
+
+    def backward(self, out):
+        # Running backward through all layers starting from the last
+        x = out
+        n = len(self.layers)
+        for i in range(len(self.layers)):
+            x = self.layers[n - 1 - i].backward(x)
+        return x
 
 
 def train(model, optim, train_loader, val_loader, n_epochs, device, result_dir):
