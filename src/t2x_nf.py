@@ -105,7 +105,7 @@ class CDPNF(nn.Module):
         return x, log_det
 
 
-def train(model, optim, train_loader, val_loader, n_epochs, device, result_dir):
+def train(model, optim, train_loader, val_loader, n_epochs, device, model_path):
     model = model.to(device)
     model.train()
 
@@ -142,7 +142,7 @@ def train(model, optim, train_loader, val_loader, n_epochs, device, result_dir):
                     f"Val loss -> {val_loss:.2f}"
         if best_val_loss > val_loss:
             best_val_loss = val_loss
-            torch.save(model, os.path.join(result_dir, DEFAULT_MODEL_PATH))
+            torch.save(model, model_path)
             epoch_str += " --> Stored best model"
         print(epoch_str)
 
@@ -212,9 +212,13 @@ def main():
     # Creating and training model
     model = CDPNF(nl, default_network, device, h, w)
     optim = Adam(model.parameters(), lr=lr)
-    train(model, optim, train_loader, val_loader, epochs, device, result_dir)
 
-    test(test_loader, device, result_dir)
+    model_path = os.path.join(result_dir, DEFAULT_MODEL_PATH)
+    if not os.path.isfile(model_path):
+        print(f"Training new model to be stored at {model_path}")
+        train(model, optim, train_loader, val_loader, epochs, device, model_path)
+
+    test(test_loader, device, result_dir, forward=False)
     print("Program finished successfully")
 
 
