@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 import torch
 from torch.utils.data import DataLoader
-from torchvision.models.resnet import resnet50, wide_resnet50_2
+from torchvision.models.resnet import wide_resnet50_2
 
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2

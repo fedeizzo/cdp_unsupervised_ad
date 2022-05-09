@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 
 import torch.nn as nn
@@ -85,8 +83,8 @@ class CDPNF(nn.Module):
         ])
 
         if zero_init:
-            for l in self.layers:
-                l.zero_init()
+            for layer in self.layers:
+                layer.zero_init()
 
     def forward(self, x):
         out, log_det = x, 0.0

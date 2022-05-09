@@ -1,10 +1,9 @@
-import os
 import numpy as np
 import matplotlib.pyplot as plt
 
 from torch.optim import Adam
 
-from torchvision.models.resnet import resnet50, wide_resnet50_2
+from torchvision.models.resnet import wide_resnet50_2
 
 from data.utils import load_cdp_data
 from models.normalizing_flows import NormalizingFlowModel

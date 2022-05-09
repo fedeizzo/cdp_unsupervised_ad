@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 
-
 from utils import *
 from data.utils import load_cdp_data
 
