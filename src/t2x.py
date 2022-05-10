@@ -103,24 +103,8 @@ def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly
             f = f.to(device)
             f_scores[idx].extend(anomaly_fn(f, o_hat))
 
-    o_scores, f_scores = np.array(o_scores), np.array(f_scores)
-    np.save(os.path.join(dest, "o_scores.npy"), o_scores)
-    np.save(os.path.join(dest, "f_scores.npy"), f_scores)
-
-    n_bins = len(o_scores) // 4
-    plt.hist(o_scores, bins=n_bins, label="Originals")
-    auc_roc_scores = []
-    for f_name, f_score in zip(["Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76"], f_scores):
-        plt.hist(f_score, bins=n_bins, label=f_name)
-        auc_roc_scores.append(get_roc_auc_score(o_scores, f_score))
-
-    np.save(os.path.join(dest, "auc_scores.npy"), np.array(auc_roc_scores))
-
-    plt.legend()
-    plt.xlabel("Anomaly score")
-    plt.ylabel("Density")
-    plt.title(title)
-    plt.savefig(os.path.join(dest, "anomaly_scores.png"))
+    store_scores(o_scores, f_scores, dest)
+    store_hist_picture(o_scores, f_scores, dest, title)
 
 
 def main():

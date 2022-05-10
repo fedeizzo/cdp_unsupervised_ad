@@ -1,7 +1,11 @@
 import os
-import torch
 from argparse import ArgumentParser
+
+import numpy as np
 from sklearn.metrics import roc_auc_score
+import matplotlib.pyplot as plt
+
+import torch
 
 # Arguments keys
 DATA_DIR = 'data'
@@ -20,6 +24,9 @@ FREEZE_BACKBONE = "freeze_backbone"
 MODEL = "model"
 RESULT_DIR = "result_dir"
 SEED = "seed"
+
+# Fake names
+FAKE_NAMES = ["Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76"]
 
 
 def set_reproducibility(seed):
@@ -67,3 +74,28 @@ def get_roc_auc_score(o_scores, f_scores):
     y_true = [*[0 for _ in range(len(o_scores))], *[1 for _ in range(len(f_scores))]]
     y_score = [*o_scores, *f_scores]
     return roc_auc_score(y_true, y_score)
+
+
+def store_scores(o_scores, f_scores, dest):
+    o_scores, f_scores = np.array(o_scores), np.array(f_scores)
+    np.save(os.path.join(dest, "o_scores.npy"), o_scores)
+    np.save(os.path.join(dest, "f_scores.npy"), f_scores)
+
+
+def store_hist_picture(o_scores, f_scores, dest,
+                       title="Anomaly scores", pic_name="anomaly_scores.png", fakes_names=FAKE_NAMES):
+    o_scores, f_scores = np.array(o_scores), np.array(f_scores)
+    n_bins = len(o_scores) // 4
+    plt.hist(o_scores, bins=n_bins, label="Originals")
+    auc_roc_scores = []
+    for f_name, f_score in zip(fakes_names, f_scores):
+        plt.hist(f_score, bins=n_bins, label=f_name)
+        auc_roc_scores.append(get_roc_auc_score(o_scores, f_score))
+
+    np.save(os.path.join(dest, "auc_scores.npy"), np.array(auc_roc_scores))
+
+    plt.legend()
+    plt.xlabel("Anomaly score")
+    plt.ylabel("Density")
+    plt.title(title)
+    plt.savefig(os.path.join(dest, pic_name))
