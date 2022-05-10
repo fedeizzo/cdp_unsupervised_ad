@@ -14,8 +14,8 @@ def join(path1, path2):
 
 def anomaly_fn_weighted_mse(printed, estimated, doubt):
     # Normalizing doubt
-    doubt -= torch.min(doubt)
-    doubt /= torch.max(doubt)
+    doubt = doubt - torch.min(doubt)
+    doubt = doubt / torch.max(doubt)
 
     # Returning weighted (according to doubt) MSE
     return torch.mean((1 - doubt) * (printed - estimated) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
