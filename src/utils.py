@@ -1,6 +1,7 @@
 import os
 import torch
 from argparse import ArgumentParser
+from sklearn.metrics import roc_auc_score
 
 # Arguments keys
 DATA_DIR = 'data'
@@ -60,3 +61,9 @@ def get_device(verbose=True):
 def create_dir(path):
     if not os.path.isdir(path):
         os.mkdir(path)
+
+
+def get_roc_auc_score(o_scores, f_scores):
+    y_true = [*[0 for _ in range(len(o_scores))], *[1 for _ in range(len(f_scores))]]
+    y_score = [*o_scores, *f_scores]
+    return roc_auc_score(y_true, y_score)

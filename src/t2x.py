@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_auc_score
 
 from torch.optim import Adam
 
@@ -21,12 +20,6 @@ def anomaly_fn_mse(printed, estimated):
 
 def anomaly_fn_max(printed, estimated):
     return torch.amax(torch.abs(printed - estimated), dim=[1, 2, 3]).detach().cpu().numpy()
-
-
-def get_roc_auc_score(o_scores, f_scores):
-    y_true = [*[0 for _ in range(len(o_scores))], *[1 for _ in range(len(f_scores))]]
-    y_score = [*o_scores, *f_scores]
-    return roc_auc_score(y_true, y_score)
 
 
 def run_epoch(model, loader, optimizer, device, optimize=True, run_fakes=False):
