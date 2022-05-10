@@ -1,6 +1,3 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
 from torch.optim import Adam
 
 from torchvision.models.resnet import wide_resnet50_2

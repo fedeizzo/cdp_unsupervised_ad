@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-
 from torch.optim import Adam
 
 from utils import *
