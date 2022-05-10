@@ -8,10 +8,6 @@ from data.transforms import *
 DEFAULT_MODEL_PATH = "model.pt"
 
 
-def join(path1, path2):
-    return os.path.join(path1, path2)
-
-
 def anomaly_fn_mse(printed, estimated):
     return torch.mean((printed - estimated) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
 

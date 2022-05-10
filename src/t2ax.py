@@ -8,11 +8,8 @@ from data.transforms import *
 DEFAULT_MODEL_PATH = "model.pt"
 
 
-def join(path1, path2):
-    return os.path.join(path1, path2)
-
-
 def anomaly_fn_weighted_mse(printed, estimated, doubt):
+    """Returns the MSEs (per samples) between printed and estimated images weighted by the doubt tensor"""
     # Normalizing doubt
     doubt = doubt - torch.min(doubt)
     doubt = doubt / torch.max(doubt)
@@ -21,38 +18,18 @@ def anomaly_fn_weighted_mse(printed, estimated, doubt):
     return torch.mean((1 - doubt) * (printed - estimated) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
 
 
-def run_epoch(model, loader, optimizer, device, optimize=True, run_fakes=False):
-    epoch_loss = 0.0
-    o_scores, f_scores = [], [[] for _ in range(4)]
-    for batch in loader:
-        t = batch["template"].to(device)
-        o = batch["originals"][0].to(device)
-        o_hat = model(t)
+def anomaly_fn_weighted_std(printed, estimated, doubt):
+    """Returns the STDs (per samples) between printed and estimated images weighted by the doubt tensor"""
+    # Normalizing doubt
+    doubt = doubt - torch.min(doubt)
+    doubt = doubt / torch.max(doubt)
 
-        se = (o_hat - o) ** 2
-        batch_loss = torch.mean(se)
-        epoch_loss += batch_loss.item() / len(loader)
-
-        if optimize:
-            optimizer.zero_grad()
-            batch_loss.backward()
-            optimizer.step()
-
-        if run_fakes:
-            o_scores.extend(torch.mean(se, dim=[1, 2, 3]).detach().cpu().numpy())
-
-            fakes = batch["fakes"]
-            for f_idx, f in enumerate(fakes):
-                f = f.to(device)
-                o_hat = model(f)
-                f_scores[f_idx].extend(torch.mean((o_hat - o) ** 2, dim=[1, 2, 3]).detach().cpu().numpy())
-
-    if run_fakes:
-        return epoch_loss, np.array(o_scores), np.array(f_scores)
-    return epoch_loss, None, None
+    # Returning weighted (according to doubt) STD
+    return torch.std((1 - doubt) * (printed - estimated) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
 
 
 def train(model, optim, train_loader, val_loader, device, epochs, model_path=DEFAULT_MODEL_PATH):
+    """Trains the and stores the best validation model in the specified path"""
     model.train()
     best_loss = float("inf")
     for epoch in range(epochs):
@@ -88,6 +65,7 @@ def train(model, optim, train_loader, val_loader, device, epochs, model_path=DEF
 
 
 def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly_fn=anomaly_fn_weighted_mse, dest="./"):
+    """Tests the trained model on test data and stores anomaly scores, AUC scores and histograms."""
     model = torch.load(model_path, map_location=device)
     model.eval()
 
@@ -109,6 +87,8 @@ def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly
 
 
 def main():
+    """Trains (if pre-trained is not specified) and stores a model. Then, tests the model and stores test infos."""
+
     # Parameters
     args = parse_args()
     n_epochs = args[EPOCHS]
@@ -146,7 +126,7 @@ def main():
         train(model, optim, train_loader, val_loader, device, n_epochs, model_path)
 
     # Testing loop
-    a_fn = anomaly_fn_weighted_mse
+    a_fn = anomaly_fn_weighted_std
     print(f"\n\nTesting trained model at {model_path}")
     test(test_loader, device, model_path, f"Originals {originals} and fakes ({a_fn.__name__})", a_fn, result_dir)
 

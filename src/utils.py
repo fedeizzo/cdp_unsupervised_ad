@@ -65,6 +65,11 @@ def get_device(verbose=True):
     return device
 
 
+def join(path1, path2):
+    """Joins two paths"""
+    return os.path.join(path1, path2)
+
+
 def create_dir(path):
     if not os.path.isdir(path):
         os.mkdir(path)
