@@ -1,5 +1,5 @@
 from src.utils import *
-from visualizations.utils import *
+from visualizations.utils import show_cdps
 from data.utils import load_cdp_data
 
 
@@ -7,12 +7,12 @@ def visualize_print_simulation(model, data_loader, device, n_batches=1):
     for i, batch in enumerate(data_loader):
         templates = batch["template"]
         originals = batch["originals"][0]
-        predictions = model(templates.to(device))
+        predictions, doubts = model(templates.to(device)).chunk(2, 1)
 
-        for t, o, p in zip(templates, originals, predictions):
+        for t, o, p, d in zip(templates, originals, predictions, doubts):
             show_cdps(
-                [t, o, p],
-                ["Template", "Original printed", "Estimated printed"]
+                [t, o, p, d],
+                ["Template", "Original printed", "Estimated printed", "Doubt"]
             )
 
         if i + 1 >= n_batches:
@@ -22,14 +22,14 @@ def visualize_print_simulation(model, data_loader, device, n_batches=1):
 def visualize_anomaly_locations(model, loader, device, n_batches=1):
     for i, batch in enumerate(loader):
         original = batch["originals"][0]
-        estimate = model(batch["template"].to(device))
+        estimate, doubt = model(batch["template"].to(device)).chunk(2, 1)
 
-        for o, e in zip(original, estimate):
+        for o, e, d in zip(original, estimate, doubt):
             show_cdps([e, o, (e - o) ** 2], ["Estimated", "Original", "Anomaly Map"])
 
         for fake in batch["fakes"]:
-            for idx, (f, e) in enumerate(zip(fake, estimate)):
-                show_cdps([e, f, (e - f) ** 2], ["Estimated", "Fake", "Anomaly Map"])
+            for idx, (f, e, d) in enumerate(zip(fake, estimate, doubt)):
+                show_cdps([e, f, (e - f) ** 2, d], ["Estimated", "Fake", "Anomaly Map", "Doubt"])
 
         if i + 1 >= n_batches:
             break
