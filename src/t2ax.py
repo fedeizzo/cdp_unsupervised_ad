@@ -84,7 +84,7 @@ def train(model, optim, train_loader, val_loader, device, epochs, model_path=DEF
         print(epoch_str)
 
 
-def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly_fn=anomaly_fn_weighted_mse, dir="./"):
+def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly_fn=anomaly_fn_weighted_mse, dest="./"):
     model = torch.load(model_path, map_location=device)
     model.eval()
 
@@ -102,8 +102,8 @@ def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly
             f_scores[idx].extend(anomaly_fn(f, o_hat, doubt))
 
     o_scores, f_scores = np.array(o_scores), np.array(f_scores)
-    np.save(os.path.join(dir, "o_scores.npy"), o_scores)
-    np.save(os.path.join(dir, "f_scores.npy"), f_scores)
+    np.save(os.path.join(dest, "o_scores.npy"), o_scores)
+    np.save(os.path.join(dest, "f_scores.npy"), f_scores)
 
     n_bins = len(o_scores) // 4
     plt.hist(o_scores, bins=n_bins, label="Originals")
@@ -112,13 +112,13 @@ def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly
         plt.hist(f_score, bins=n_bins, label=f_name)
         auc_roc_scores.append(get_roc_auc_score(o_scores, f_score))
 
-    np.save(os.path.join(dir, "auc_scores.npy"), np.array(auc_roc_scores))
+    np.save(os.path.join(dest, "auc_scores.npy"), np.array(auc_roc_scores))
 
     plt.legend()
     plt.xlabel("Anomaly score")
     plt.ylabel("Density")
     plt.title(title)
-    plt.savefig(os.path.join(dir, "anomaly_scores.png"))
+    plt.savefig(os.path.join(dest, "anomaly_scores.png"))
 
 
 def main():
