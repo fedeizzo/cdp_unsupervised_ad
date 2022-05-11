@@ -3,10 +3,10 @@
 ## Description
 This repository collects the methods to do unsupervised anomaly detection on our Copy Detection Patterns (CDP) dataset and on other anomaly detection datasets such as MVTec AD.
 
-### CDP
+### Scripts
 Script `t2x.py` trains a model to estimate an original code (x) starting from a template (t). The anomaly map is obtained using the difference between the estimation and the provided printed code.
 
-Script `t2ax.py`, similarly, also predicts an "attention" map which measures the confidence of the predictor in its prediction. The attention map is used with the estimation to detect anomalies on the given printed code.
+Script `t2xa.py`, similarly, also predicts an "attention" map which measures the confidence of the predictor in its prediction. The attention map is used with the estimation to detect anomalies on the given printed code.
 
 Script `t2x_nf.py` tries to estimate the original printed x using the template t with a normalizing flow model which keeps alternating affine-coupling layers. The model is invertible.
 
@@ -30,10 +30,10 @@ Where:
  - `r_dir` is the directory where all results (models, auc scores, ...) will be stored
  - `model` is the path to a pre-trained model (training procedure is skipped).
 
-## Usage for Template-to-Anomaly and Original model on CDPs
+## Usage for Template-to-Original and Attention model on CDPs
 Training of a template-to-anomaly and original (t2ax) model can be done as such:
 
-`python t2ax.py --data {data_path} --originals {o} --epochs {e} --bs {bs} --lr {lr} --tp {tp} --vp {vp} --seed {seed} --result_dir {r_dir} --model {model}`
+`python t2xa.py --data {data_path} --originals {o} --epochs {e} --bs {bs} --lr {lr} --tp {tp} --vp {vp} --seed {seed} --result_dir {r_dir} --model {model}`
 
 Where:
  - `data_path`is the string path to the CDPs

@@ -25,4 +25,4 @@ module load Python/3.8.6
 
 # Running Main Program
 # srun ${HOME}/cdp_fastflow/scripts/run_t2x.sh
-srun ${HOME}/cdp_fastflow/scripts/run_t2ax.sh
+srun ${HOME}/cdp_fastflow/scripts/run_t2xa.sh

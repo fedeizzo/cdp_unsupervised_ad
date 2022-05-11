@@ -1,7 +1,7 @@
 from torch.optim import Adam
 
 from utils import *
-from models.t2x import get_simple_model
+from models.models import get_simple_model
 from data.utils import load_cdp_data
 from data.transforms import *
 

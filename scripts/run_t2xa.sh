@@ -8,7 +8,7 @@ mkdir ${HOME}/cdp_fastflow/results/${ORIGINALS}
 for SEED in 0 1 2 3 4
 do
   python3 -u \
-  ${HOME}/cdp_fastflow/src/t2ax.py \
+  ${HOME}/cdp_fastflow/src/t2xa.py \
   --data ${HOME}/cdp_fastflow/datasets/1x1 \
   --originals $ORIGINALS \
   --epochs 150 \
