@@ -8,24 +8,16 @@ from data.transforms import *
 DEFAULT_MODEL_PATH = "model.pt"
 
 
-def anomaly_fn_weighted_mse(printed, estimated, doubt):
-    """Returns the MSEs (per samples) between printed and estimated images weighted by the doubt tensor"""
-    # Normalizing doubt
-    doubt = doubt - torch.min(doubt)
-    doubt = doubt / torch.max(doubt)
-
-    # Returning weighted (according to doubt) MSE
-    return torch.mean((1 - doubt) * (printed - estimated) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
+def anomaly_fn_weighted_mse(printed, estimated, confidence):
+    """Returns the MSEs (per samples) between printed and estimated images weighted by the confidence tensor"""
+    # Returning weighted (according to confidence) MSE
+    return torch.mean(confidence * (printed - estimated) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
 
 
-def anomaly_fn_weighted_std(printed, estimated, doubt):
-    """Returns the STDs (per samples) between printed and estimated images weighted by the doubt tensor"""
-    # Normalizing doubt
-    doubt = doubt - torch.min(doubt)
-    doubt = doubt / torch.max(doubt)
-
-    # Returning weighted (according to doubt) STD
-    return torch.std((1 - doubt) * (printed - estimated) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
+def anomaly_fn_weighted_std(printed, estimated, confidence):
+    """Returns the STDs (per samples) between printed and estimated images weighted by the confidence tensor"""
+    # Returning weighted (according to confidence) STD
+    return torch.std(confidence * (printed - estimated) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
 
 
 def train(model, optim, train_loader, val_loader, device, epochs, model_path=DEFAULT_MODEL_PATH):
@@ -37,10 +29,10 @@ def train(model, optim, train_loader, val_loader, device, epochs, model_path=DEF
         for batch in train_loader:
             t = batch["template"].to(device)
             o = batch["originals"][0].to(device)
-            o_hat, doubt = model(t).chunk(2, 1)
+            o_hat, confidence = model(t).chunk(2, 1)
             error = (o - o_hat) ** 2
 
-            batch_loss = torch.mean(error) + torch.mean((error - doubt) ** 2)
+            batch_loss = torch.mean(error ** 2) - torch.mean(((1 - error) - confidence) ** 2)
 
             optim.zero_grad()
             batch_loss.backward()
@@ -51,10 +43,10 @@ def train(model, optim, train_loader, val_loader, device, epochs, model_path=DEF
         for batch in val_loader:
             t = batch["template"].to(device)
             o = batch["originals"][0].to(device)
-            o_hat, doubt = model(t).chunk(2, 1)
+            o_hat, confidence = model(t).chunk(2, 1)
             error = (o - o_hat) ** 2
 
-            val_loss += (torch.mean(error) + torch.mean((error - doubt) ** 2)) / len(val_loader)
+            val_loss += (torch.mean(error ** 2) - torch.mean(((1 - error) - confidence) ** 2)).item() / len(val_loader)
 
         epoch_str = f"Epoch {epoch + 1}/{epochs}\tTrain loss: {epoch_loss:.3f}\tVal loss: {val_loss:.3f}"
         if val_loss < best_loss:
@@ -74,13 +66,13 @@ def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly
     for batch in test_loader:
         t = batch["template"].to(device)
         o = batch["originals"][0].to(device)
-        o_hat, doubt = model(t).chunk(2, 1)
+        o_hat, confidence = model(t).chunk(2, 1)
 
-        o_scores.extend(anomaly_fn(o, o_hat, doubt))
+        o_scores.extend(anomaly_fn(o, o_hat, confidence))
 
         for idx, f in enumerate(batch["fakes"]):
             f = f.to(device)
-            f_scores[idx].extend(anomaly_fn(f, o_hat, doubt))
+            f_scores[idx].extend(anomaly_fn(f, o_hat, confidence))
 
     store_scores(o_scores, f_scores, dest)
     store_hist_picture(o_scores, f_scores, dest, title)
@@ -126,7 +118,7 @@ def main():
         train(model, optim, train_loader, val_loader, device, n_epochs, model_path)
 
     # Testing loop
-    a_fn = anomaly_fn_weighted_std
+    a_fn = anomaly_fn_weighted_mse
     print(f"\n\nTesting trained model at {model_path}")
     test(test_loader, device, model_path, f"Originals {originals} and fakes ({a_fn.__name__})", a_fn, result_dir)
 
