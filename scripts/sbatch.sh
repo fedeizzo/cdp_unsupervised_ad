@@ -14,15 +14,15 @@ module load GCC/10.2.0 CUDA/11.1.1
 module load Python/3.8.6
 
 # Installing torchvision in a Python Virtual environment
-# virtualenv ~/cdp_fastflow/venv
+# virtualenv ~/cdp_unsupervised_ad/venv
 . ~/cdp_fastflow/venv/bin/activate
-# ~/cdp_fastflow/venv/bin/python -m pip install --upgrade pip
+# ~/cdp_unsupervised_ad/venv/bin/python -m pip install --upgrade pip
 # pip install numpy matplotlib opencv-python
 # pip install torch
 # pip install albumentations anomalib
 # pip list
-# pip install -r ~/cdp_fastflow/requirements.txt
+# pip install -r ~/cdp_unsupervised_ad/requirements.txt
 
 # Running Main Program
-# srun ${HOME}/cdp_fastflow/scripts/run_t2x.sh
+# srun ${HOME}/cdp_unsupervised_ad/scripts/run_t2x.sh
 srun ${HOME}/cdp_fastflow/scripts/run_t2xa.sh
