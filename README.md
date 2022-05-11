@@ -8,8 +8,6 @@ Script `t2x.py` trains a model to estimate an original code (x) starting from a 
 
 Script `t2xa.py`, similarly, also predicts an "attention" map which measures the confidence of the predictor in its prediction. The attention map is used with the estimation to detect anomalies on the given printed code.
 
-Script `t2x_nf.py` tries to estimate the original printed x using the template t with a normalizing flow model which keeps alternating affine-coupling layers. The model is invertible.
-
 ## Requirements
 The code is meant to be run on Python 3.8. Code dependencies are specified in the `requirements.txt` file.
 
