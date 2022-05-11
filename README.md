@@ -1,52 +1,48 @@
-# FastFlow for Copy Detection Patterns
+# CDP Unsupervised AD
 
 ## Description
-FastFlow, by Yu et. al. (https://arxiv.org/abs/2111.07677), is a state of the art normalizing flow model for anomaly detection for the MVTec AD dataset (https://www.mvtec.com/company/research/datasets/mvtec-ad).
+This repository collects the methods to do unsupervised anomaly detection on our Copy Detection Patterns (CDP) dataset and on other anomaly detection datasets such as MVTec AD.
 
-This project is an implementation of the (to date, 22.03.2022) non-available source code for our own Copy Detection Patterns (CDPs) dataset.
+### CDP
+Script `t2x.py` trains a model to estimate an original code (x) starting from a template (t). The anomaly map is obtained using the difference between the estimation and the provided printed code.
+
+Script `t2ax.py`, similarly, also predicts an "attention" map which measures the confidence of the predictor in its prediction. The attention map is used with the estimation to detect anomalies on the given printed code.
+
+Script `t2x_nf.py` tries to estimate the original printed x using the template t with a normalizing flow model which keeps alternating affine-coupling layers. The model is invertible.
 
 ## Requirements
 The code is meant to be run on Python 3.8. Code dependencies are specified in the `requirements.txt` file.
 
-## Usage for CDPs
-Training of a FastFlow model (with wide_resnet50_2 backbone) can be done as such:
+## Usage for Template-to-Original model on CDPs
+Training of a template-to-original (t2x) model can be done as such:
 
-`python main.py --data {data_path} --model {model_path} --epochs {ne} --bs {bs} --lr {lr} --tp {tp} --fc {fc} --nl {nl} --rl {rl} --seed {seed}`
-
-Where:
- - `data_path`is the string path to the CDPs
- - `model_path`is the string path to a pre-trained CDP FastFlow model
- - `ne` is the number of epochs
- - `bs` is the batch size
- - `lr` is the learning rate
- - `tp` is the percentage of training data
- - `fc` is the number of features channels that the backbone will output before the fastflow part of the model
- - `nl` is the number of affine-coupling layer in the model (each layer only change half of the input, but which half is affected is changed with every layer)
- - `rl` is the number of resnet layers used for the backbone resnet
- - `seed` randomizing seed for reproducibility
-
-Optionally:
- - ```--pretrained``` to use a pre-trained resnet50 on ImageNet
- - ```--freeze_backbone``` to freeze the backbone (and not train it)
-
-## Usage for MVTec AD
-Training of a FastFlow model (with wide_resnet50_2 backbone) can be done as such:
-
-`python main_mvtec.py --data {data_path} --category {category} --model {model_path} --epochs {ne} --bs {bs} --lr {lr} --tp {tp} --fc {fc} --nl {nl} --seed {seed}`
+`python t2x.py --data {data_path} --originals {o} --epochs {e} --bs {bs} --lr {lr} --tp {tp} --vp {vp} --seed {seed} --result_dir {r_dir} --model {model}`
 
 Where:
  - `data_path`is the string path to the CDPs
- - `category`is the category for the MVTec AD dataset (e.g. bottle, cable, capsule, ...)
- - `model_path`is the string path to a pre-trained CDP FastFlow model
- - `ne` is the number of epochs
+ - `o` is the set of originals codes used for training (either "55" or "76")
+ - `e` is the number of training epochs
  - `bs` is the batch size
  - `lr` is the learning rate
- - `tp` is the percentage of training data
- - `fc` is the number of features channels that the backbone will output before the fastflow part of the model
- - `nl` is the number of affine-coupling layer in the model (each layer only change half of the input, but which half is affected is changed with every layer)
- - `rl` is the number of resnet layers used for the backbone resnet
- - `seed` randomizing seed for reproducibility
+ - `tp` is the percentage of data used for training
+ - `vp` is the percentage of data used for testing
+ - `seed` is the randomizing seed for the experiment
+ - `r_dir` is the directory where all results (models, auc scores, ...) will be stored
+ - `model` is the path to a pre-trained model (training procedure is skipped).
 
-Optionally:
- - ```--pretrained``` to use a pre-trained resnet50 on ImageNet
- - ```--freeze_backbone``` to freeze the backbone (and not train it)
+## Usage for Template-to-Anomaly and Original model on CDPs
+Training of a template-to-anomaly and original (t2ax) model can be done as such:
+
+`python t2ax.py --data {data_path} --originals {o} --epochs {e} --bs {bs} --lr {lr} --tp {tp} --vp {vp} --seed {seed} --result_dir {r_dir} --model {model}`
+
+Where:
+ - `data_path`is the string path to the CDPs
+ - `o` is the set of originals codes used for training (either "55" or "76")
+ - `e` is the number of training epochs
+ - `bs` is the batch size
+ - `lr` is the learning rate
+ - `tp` is the percentage of data used for training
+ - `vp` is the percentage of data used for testing
+ - `seed` is the randomizing seed for the experiment
+ - `r_dir` is the directory where all results (models, auc scores, ...) will be stored
+ - `model` is the path to a pre-trained model (training procedure is skipped).
