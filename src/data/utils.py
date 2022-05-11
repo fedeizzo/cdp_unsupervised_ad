@@ -25,12 +25,14 @@ def load_cdp_data(data_dir,
                   load=True,
                   originals="55"
                   ):
+    """Loads CDP data from the given directory, splitting according to the percentages and applying the transforms.
+    Only loads the particular type of original selected. Returns the 3 data loaders and the number of fake codes."""
     t_dir = os.path.join(data_dir, 'templates')
     x_dirs = [os.path.join(data_dir, f'originals_{originals}')]
     f_dirs = [os.path.join(data_dir, 'fakes_55_55'), os.path.join(data_dir, 'fakes_55_76'),
               os.path.join(data_dir, 'fakes_76_55'), os.path.join(data_dir, 'fakes_76_76')]
 
-    n_orig, n_fakes = len(x_dirs), len(f_dirs)
+    n_fakes = len(f_dirs)
     train_set, val_set, test_set = get_split(t_dir,
                                              x_dirs,
                                              f_dirs,
@@ -50,10 +52,11 @@ def load_cdp_data(data_dir,
     val_loader = DataLoader(val_set, batch_size=bs) if vp > 0 else None
     test_loader = DataLoader(test_set, batch_size=bs) if tp + vp < 1 else None
 
-    return train_loader, val_loader, test_loader, n_orig, n_fakes
+    return train_loader, val_loader, test_loader, n_fakes
 
 
 def load_mvtec_data(data_dir, category, bs):
+    """Returns the training and test loader for the MVTec AD dataset"""
     transform = A.Compose([
         A.Resize(224, 224),
         A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),

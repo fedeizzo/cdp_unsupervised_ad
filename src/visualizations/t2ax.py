@@ -52,7 +52,7 @@ def main():
     model.eval()
 
     # Loading data
-    _, _, loader, _, _ = load_cdp_data(data_dir, 0, 0, 1, originals=originals)
+    _, _, loader, _ = load_cdp_data(data_dir, 0, 0, 1, originals=originals)
 
     # Showing printing simulation
     visualize_print_simulation(model, loader, device)

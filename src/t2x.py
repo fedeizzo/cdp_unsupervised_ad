@@ -1,7 +1,7 @@
 from torch.optim import Adam
 
 from utils import *
-from models.t2x import get_t2x_model
+from models.t2x import get_simple_model
 from data.utils import load_cdp_data
 from data.transforms import *
 
@@ -125,14 +125,14 @@ def main():
     device = get_device()
 
     # Loading data
-    train_loader, val_loader, test_loader, _, _ = load_cdp_data(base_dir, tp, vp, bs, originals=originals)
+    train_loader, val_loader, test_loader, _ = load_cdp_data(base_dir, tp, vp, bs, originals=originals)
 
     # Training loop
     if not os.path.isfile(model_path):
         print(f"Model at {model_path} not found: Training a new model.")
 
         # Creating one-convolution model
-        model = get_t2x_model().to(device)
+        model = get_simple_model().to(device)
         optim = Adam(model.parameters(), lr=lr)
 
         # Training loop

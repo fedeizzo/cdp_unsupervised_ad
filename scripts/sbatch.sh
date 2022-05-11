@@ -1,5 +1,5 @@
 #!/bin/sh
-#SBATCH --job-name cdp_fastflow
+#SBATCH --job-name cdp_unsupervised_ad
 #SBATCH --error error.e%j
 #SBATCH --output out.o%j
 #SBATCH --ntasks 1

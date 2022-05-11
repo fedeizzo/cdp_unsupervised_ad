@@ -11,7 +11,7 @@ from data.transforms import AllRandomTransforms, NormalizedTensorTransform
 
 # Definitions
 # Bad indices from dataset A (5x5 codes)
-INDICES_BAD_A = [29, 39, 104, 106, 110, 120, 130, 140, 141, 150, 174, 208, 226, 235, 244, 270, 280, 290, 300]
+INDICES_BAD_A_5x5 = [29, 39, 104, 106, 110, 120, 130, 140, 141, 150, 174, 208, 226, 235, 244, 270, 280, 290, 300]
 
 
 def get_split(t_dir,
@@ -42,7 +42,7 @@ def get_split(t_dir,
     all_indices = np.arange(1, len(os.listdir(t_dir)) + 1)
 
     if bad_indexes:
-        all_indices = [idx for idx in all_indices if idx not in INDICES_BAD_A]
+        all_indices = [idx for idx in all_indices if idx not in INDICES_BAD_A_5x5]
 
     np.random.shuffle(all_indices)
     n = len(all_indices)

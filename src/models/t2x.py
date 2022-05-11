@@ -1,24 +1,15 @@
 import torch.nn as nn
 
 
-def get_t2x_model():
-    return nn.Sequential(
-        nn.Conv2d(1, 10, (7, 7), padding=(3, 3)),
-        nn.Conv2d(10, 10, (7, 7), padding=(3, 3)),
-        nn.ReLU(),
-        nn.Conv2d(10, 1, (7, 7), padding=(3, 3)),
-        nn.Sigmoid()
-    )
+def get_simple_model(hidden_channels=10, kernel_size=7, out_channels=1):
+    assert kernel_size % 2 == 1, "Kernel size should be odd"
+    padding = int(kernel_size / 2 - .5)
 
-
-def get_t2ax_model():
     return nn.Sequential(
-        nn.Conv2d(1, 10, (7, 7), padding=(3, 3)),
+        nn.Conv2d(1, hidden_channels, kernel_size, padding=padding),
         nn.ReLU(),
-        nn.Conv2d(10, 10, (7, 7), padding=(3, 3)),
+        nn.Conv2d(hidden_channels, hidden_channels, kernel_size, padding=padding),
         nn.ReLU(),
-        nn.Conv2d(10, 10, (7, 7), padding=(3, 3)),
-        nn.ReLU(),
-        nn.Conv2d(10, 2, (7, 7), padding=(3, 3)),
+        nn.Conv2d(hidden_channels, out_channels, kernel_size, padding=padding),
         nn.Sigmoid()
     )

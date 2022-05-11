@@ -6,6 +6,7 @@ from torchvision.transforms.functional import adjust_gamma, rotate, vflip, hflip
 
 # Custom transforms
 class ComposeAll:
+    """Composes all transforms that take as input multiple arguments"""
     def __init__(self, all_transforms):
         self.transforms = all_transforms
 
