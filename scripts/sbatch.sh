@@ -19,7 +19,7 @@ module load Python/3.8.6
 # ~/cdp_unsupervised_ad/venv/bin/python -m pip install --upgrade pip
 # pip install numpy matplotlib opencv-python
 # pip install torch
-# pip install albumentations
+# pip install albumentations anomalib
 # pip list
 # pip install -r ~/cdp_unsupervised_ad/requirements.txt
 
