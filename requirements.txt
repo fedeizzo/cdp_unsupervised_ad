@@ -3,6 +3,4 @@ matplotlib
 opencv-python
 torch
 torchvision
-anomalib
 albumentations
-FrEIA @ git+https://github.com/VLL-HD/FrEIA@1779d1fba1e21000fda1927b59eeac0a6fcaa284

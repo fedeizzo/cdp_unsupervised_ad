@@ -23,10 +23,6 @@ module load Python/3.8.6
 # pip list
 # pip install -r ~/cdp_fastflow/requirements.txt
 
-# Running FastFlow
-# srun ${HOME}/cdp_fastflow/scripts/run_main.sh
-# srun ${HOME}/cdp_fastflow/scripts/run_main_mvtec.sh
-# srun ${HOME}/cdp_fastflow/scripts/run_simple.sh
+# Running Main Program
 # srun ${HOME}/cdp_fastflow/scripts/run_t2x.sh
-# srun ${HOME}/cdp_fastflow/scripts/run_t2x_nf.sh
 srun ${HOME}/cdp_fastflow/scripts/run_t2ax.sh
