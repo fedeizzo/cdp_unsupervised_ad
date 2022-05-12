@@ -5,7 +5,7 @@
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 1
 #SBATCH --mem-per-cpu 20000
-#SBATCH --partition shared-gpu
+#SBATCH --partition private-sip-gpu
 #SBATCH --gpus=titan:1
 #SBATCH --time 11:55:00
 
