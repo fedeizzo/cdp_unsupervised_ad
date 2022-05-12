@@ -9,42 +9,13 @@ DEFAULT_MODEL_PATH = "model.pt"
 
 
 def anomaly_fn_mse(printed, estimated):
+    """Returns the batch-wise MSE between printed codes and model estimation given by the template"""
     return torch.mean((printed - estimated) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
 
 
 def anomaly_fn_max(printed, estimated):
-    return torch.amax(torch.abs(printed - estimated), dim=[1, 2, 3]).detach().cpu().numpy()
-
-
-def run_epoch(model, loader, optimizer, device, optimize=True, run_fakes=False):
-    epoch_loss = 0.0
-    o_scores, f_scores = [], [[] for _ in range(4)]
-    for batch in loader:
-        t = batch["template"].to(device)
-        o = batch["originals"][0].to(device)
-        o_hat = model(t)
-
-        se = (o_hat - o) ** 2
-        batch_loss = torch.mean(se)
-        epoch_loss += batch_loss.item() / len(loader)
-
-        if optimize:
-            optimizer.zero_grad()
-            batch_loss.backward()
-            optimizer.step()
-
-        if run_fakes:
-            o_scores.extend(torch.mean(se, dim=[1, 2, 3]).detach().cpu().numpy())
-
-            fakes = batch["fakes"]
-            for f_idx, f in enumerate(fakes):
-                f = f.to(device)
-                o_hat = model(f)
-                f_scores[f_idx].extend(torch.mean((o_hat - o) ** 2, dim=[1, 2, 3]).detach().cpu().numpy())
-
-    if run_fakes:
-        return epoch_loss, np.array(o_scores), np.array(f_scores)
-    return epoch_loss, None, None
+    """Returns the maximum absolute difference between printed codes and model estimation given by the template"""
+    return np.array([torch.max(t).detach().item() for t in torch.abs(printed - estimated)])
 
 
 def train(model, optim, train_loader, val_loader, device, epochs, model_path=DEFAULT_MODEL_PATH):
@@ -86,19 +57,21 @@ def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly
 
     o_scores = []
     f_scores = [[] for _ in range(4)]
-    for batch in test_loader:
-        t = batch["template"].to(device)
-        o = batch["originals"][0].to(device)
-        o_hat = model(t)
 
-        o_scores.extend(anomaly_fn(o, o_hat))
+    with torch.no_grad():
+        for batch in test_loader:
+            t = batch["template"].to(device)
+            o = batch["originals"][0].to(device)
+            o_hat = model(t)
 
-        for idx, f in enumerate(batch["fakes"]):
-            f = f.to(device)
-            f_scores[idx].extend(anomaly_fn(f, o_hat))
+            o_scores.extend(anomaly_fn(o, o_hat))
 
-    store_scores(o_scores, f_scores, dest)
-    store_hist_picture(o_scores, f_scores, dest, title)
+            for idx, f in enumerate(batch["fakes"]):
+                f = f.to(device)
+                f_scores[idx].extend(anomaly_fn(f, o_hat))
+
+        store_scores(o_scores, f_scores, dest)
+        store_hist_picture(o_scores, f_scores, dest, title)
 
 
 def main():

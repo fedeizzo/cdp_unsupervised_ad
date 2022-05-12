@@ -63,24 +63,25 @@ def test(test_loader, device, model_path=DEFAULT_MODEL_PATH, title=None, anomaly
 
     o_scores = []
     f_scores = [[] for _ in range(4)]
-    for batch in test_loader:
-        t = batch["template"].to(device)
-        o = batch["originals"][0].to(device)
-        o_hat, confidence = model(t).chunk(2, 1)
 
-        o_scores.extend(anomaly_fn(o, o_hat, confidence))
+    with torch.no_grad():
+        for batch in test_loader:
+            t = batch["template"].to(device)
+            o = batch["originals"][0].to(device)
+            o_hat, confidence = model(t).chunk(2, 1)
 
-        for idx, f in enumerate(batch["fakes"]):
-            f = f.to(device)
-            f_scores[idx].extend(anomaly_fn(f, o_hat, confidence))
+            o_scores.extend(anomaly_fn(o, o_hat, confidence))
 
-    store_scores(o_scores, f_scores, dest)
-    store_hist_picture(o_scores, f_scores, dest, title)
+            for idx, f in enumerate(batch["fakes"]):
+                f = f.to(device)
+                f_scores[idx].extend(anomaly_fn(f, o_hat, confidence))
+
+        store_scores(o_scores, f_scores, dest)
+        store_hist_picture(o_scores, f_scores, dest, title)
 
 
 def main():
     """Trains (if pre-trained is not specified) and stores a model. Then, tests the model and stores test infos."""
-
     # Parameters
     args = parse_args()
     n_epochs = args[EPOCHS]

@@ -124,7 +124,7 @@ class CDPDataset(Dataset):
         self.multi_gpu = multi_gpu
         self.all_loaded = load
 
-        # Keeping only file names that exists in all folders
+        # Keeping only file names that exist in all folders
         self.file_names = []
         all_dirs = [t_dir, *x_dirs, *f_dirs]
         for fn in os.listdir(t_dir):
@@ -239,17 +239,17 @@ def main():
         load=False
     )
 
-    def std(img):
-        return torch.std(img)
+    def std(image):
+        return torch.std(image)
 
-    def norm_std(img):
-        return torch.std(img) / torch.sum(img < (torch.mean(img)))
+    def norm_std(image):
+        return torch.std(image) / torch.sum(image < (torch.mean(image)))
 
-    def t_std(img):
-        return torch.std(img) / torch.sum(img < 0.1)
+    def t_std(image):
+        return torch.std(image) / torch.sum(image < 0.1)
 
-    def percent_black(img):
-        return torch.sum(img < 0.5) / (np.prod([d for d in img.shape]))
+    def percent_black(image):
+        return torch.sum(image < 0.5) / (np.prod([d for d in image.shape]))
 
     metric = percent_black
     all_x55, all_x76 = [], []

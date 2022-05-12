@@ -26,7 +26,7 @@ RESULT_DIR = "result_dir"
 SEED = "seed"
 
 # Fake names
-FAKE_NAMES = ["Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76"]
+FAKE_NAMES = ("Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76")
 
 
 def set_reproducibility(seed):
@@ -38,7 +38,7 @@ def set_reproducibility(seed):
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument(f"--{DATA_DIR}", type=str, help="Data root directory path")
-    parser.add_argument(f"--{CATEGORY}", type=str, default="bottle", help="Category for the mvtec dataset")
+    parser.add_argument(f"--{CATEGORY}", type=str, default="bottle", help="Category for the MVTec dataset")
     parser.add_argument(f"--{EPOCHS}", type=int, help="Number of epochs", default=1)
     parser.add_argument(f"--{ORIGINALS}", choices=["55", "76"], help="Originals to be used for training", default="55")
     parser.add_argument(f"--{BS}", type=int, help="Batch size", default=8)

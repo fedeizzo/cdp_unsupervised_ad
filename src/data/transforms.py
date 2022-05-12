@@ -18,7 +18,7 @@ class ComposeAll:
 
 
 class ToTensorAll:
-    """Converts all of the given inputs to pytorch tensors."""
+    """Converts all the given inputs to pytorch tensors."""
 
     def __init__(self):
         self.to_tensor = ToTensor()
