@@ -2,10 +2,6 @@ import os
 
 from torch.utils.data import DataLoader
 
-from anomalib.data.mvtec import MVTec
-import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
-
 from data.cdp_dataset import get_split
 from data.transforms import NormalizedTensorTransform
 
@@ -53,18 +49,3 @@ def load_cdp_data(data_dir,
     test_loader = DataLoader(test_set, batch_size=bs) if tp + vp < 1 else None
 
     return train_loader, val_loader, test_loader, n_fakes
-
-
-def load_mvtec_data(data_dir, category, bs):
-    """Returns the training and test loader for the MVTec AD dataset"""
-    transform = A.Compose([
-        A.Resize(224, 224),
-        A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ToTensorV2()])
-    train_set = MVTec(data_dir, category, pre_process=transform, is_train=True)
-    test_set = MVTec(data_dir, category, pre_process=transform, is_train=False)
-
-    train_loader = DataLoader(train_set, batch_size=bs, shuffle=True)
-    test_loader = DataLoader(test_set, batch_size=bs, shuffle=False)
-
-    return train_loader, test_loader

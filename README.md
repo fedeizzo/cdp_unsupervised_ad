@@ -1,7 +1,7 @@
 # CDP Unsupervised AD
 
 ## Description
-This repository collects the methods to do unsupervised anomaly detection on our Copy Detection Patterns (CDP) dataset and on other anomaly detection datasets such as MVTec AD.
+This repository collects the methods to do unsupervised anomaly detection on our Copy Detection Patterns (CDP) dataset.
 
 ### Scripts
 Script `t2x.py` trains a model to estimate an original code (x) starting from a template (t). The anomaly map is obtained using the difference between the estimation and the provided printed code.

@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task 1
 #SBATCH --mem-per-cpu 20000
 #SBATCH --partition private-sip-gpu
-#SBATCH --gpus=titan:1
+#SBATCH --gpus=ampere:1
 #SBATCH --time 11:55:00
 
 # Loading required modules
@@ -17,7 +17,7 @@ module load Python/3.8.6
 # virtualenv ~/cdp_unsupervised_ad/venv
 . ~/cdp_unsupervised_ad/venv/bin/activate
 # ~/cdp_unsupervised_ad/venv/bin/python -m pip install --upgrade pip
-# pip install numpy matplotlib opencv-python
+# pip install numpy matplotlib opencv-python sklearn
 # pip install torch
 # pip install albumentations anomalib
 # pip list
