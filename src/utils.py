@@ -9,24 +9,23 @@ import torch
 
 # Arguments keys
 DATA_DIR = 'data'
-CATEGORY = 'category'
 EPOCHS = "epochs"
+MODE = "mode"
 ORIGINALS = "originals"
 BS = "bs"
 LR = "lr"
 TP = "tp"
 VP = "vp"
-FC = "fc"
-NL = "nl"
-RL = "rl"
-PRETRAINED = "pretrained"
-FREEZE_BACKBONE = "freeze_backbone"
 MODEL = "model"
 RESULT_DIR = "result_dir"
 SEED = "seed"
 
 # Fake names
 FAKE_NAMES = ("Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76")
+
+# Modes
+AVAILABLE_MODES = ("t2x", "t2xa", "x2t", "x2ta", "both", "both_a")
+AVAILABLE_ORIGINALS = ("55", "76")
 
 
 def set_reproducibility(seed):
@@ -38,14 +37,16 @@ def set_reproducibility(seed):
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument(f"--{DATA_DIR}", type=str, help="Data root directory path")
-    parser.add_argument(f"--{EPOCHS}", type=int, help="Number of epochs", default=1)
-    parser.add_argument(f"--{ORIGINALS}", choices=["55", "76"], help="Originals to be used for training", default="55")
-    parser.add_argument(f"--{BS}", type=int, help="Batch size", default=8)
+    parser.add_argument(f"--{EPOCHS}", type=int, help="Number of epochs", default=100)
+    parser.add_argument(f"--{MODE}", choices=AVAILABLE_MODES, help="Kind of model used", default=AVAILABLE_MODES[0])
+    parser.add_argument(f"--{ORIGINALS}", choices=AVAILABLE_ORIGINALS, help="Originals to be used for training",
+                        default=AVAILABLE_ORIGINALS[0])
+    parser.add_argument(f"--{BS}", type=int, help="Batch size", default=16)
     parser.add_argument(f"--{LR}", type=float, help="Learning rate", default=0.001)
     parser.add_argument(f"--{TP}", type=float, help="Training data percentage", default=0.4)
     parser.add_argument(f"--{VP}", type=float, help="Validation data percentage", default=0.1)
     parser.add_argument(f"--{MODEL}", type=str, help="Model path where net will be stored / restored", default=None)
-    parser.add_argument(f"--{RESULT_DIR}", type=str, help="Path where results will be stored", default="./results")
+    parser.add_argument(f"--{RESULT_DIR}", type=str, help="Path where all results will be stored", default="./results")
     parser.add_argument(f"--{SEED}", type=int, help="Randomizing seed", default=0)
 
     return vars(parser.parse_args())
