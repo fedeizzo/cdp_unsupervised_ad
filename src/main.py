@@ -24,7 +24,7 @@ def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
         for batch in train_loader:
             t = batch["template"].to(device)
             x = batch["originals"][0].to(device)
-            batch_loss = forward(mode, models, t, x)
+            batch_loss = forward(mode, models, t, x)[0]
 
             for optim in optims:
                 optim.zero_grad()
@@ -40,7 +40,7 @@ def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
             t = batch["template"].to(device)
             x = batch["originals"][0].to(device)
 
-            batch_loss = forward(mode, models, t, x)
+            batch_loss = forward(mode, models, t, x)[0]
 
             val_loss += batch_loss.item() / len(val_loader)
 
@@ -89,7 +89,11 @@ def main():
     bs = args[BS]
     tp = args[TP]
     vp = args[VP]
+    seed = args[SEED]
     print(args)
+
+    # Setting reproducibility
+    set_reproducibility(seed)
 
     # Getting program device
     device = get_device()

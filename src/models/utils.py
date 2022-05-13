@@ -22,18 +22,18 @@ def forward(mode, models, t, x):
     """Method which returns the loss for the given mode using the given models, templates and originals"""
     if mode == Mode.MODE_T2X:
         x_hat = models[0](t)
-        return torch.mean((x_hat - x) ** 2)
+        return torch.mean((x_hat - x) ** 2), x_hat
     elif mode == Mode.MODE_T2XA:
         x_hat, c = models[0](t).chunk(2, 1)
         diff = (x - x_hat)
-        return torch.mean(diff ** 2) + torch.mean(((1 - torch.abs(diff)) - c) ** 2)
+        return torch.mean(diff ** 2) + torch.mean(((1 - torch.abs(diff)) - c) ** 2), x_hat, c
     elif mode == Mode.MODE_X2T:
         t_hat = models[0](x)
-        return torch.mean((t_hat - t) ** 2)
+        return torch.mean((t_hat - t) ** 2), t_hat
     elif mode == Mode.MODE_X2TA:
         t_hat, c = models[0](x).chunk(2, 1)
         diff = (t - t_hat)
-        return torch.mean(diff ** 2) + torch.mean(((1 - torch.abs(diff)) - c) ** 2)
+        return torch.mean(diff ** 2) + torch.mean(((1 - torch.abs(diff)) - c) ** 2), t_hat, c
     elif mode == Mode.MODE_BOTH:
         t2x_model, x2t_model = models[0], models[1]
         x_hat = t2x_model(t)
@@ -41,7 +41,7 @@ def forward(mode, models, t, x):
 
         l_cyc = torch.mean((x2t_model(x_hat) - t) ** 2) + torch.mean((t2x_model(t_hat) - x) ** 2)
         l_standard = torch.mean((x_hat - x) ** 2) + torch.mean((t_hat - t) ** 2)
-        return l_cyc + l_standard
+        return l_cyc + l_standard, x_hat, t_hat
     elif mode == Mode.MODE_BOTH_A:
         t2xa_model, x2ta_model = models[0], models[1]
         x_hat, cx = t2xa_model(t).chunk(2, 1)
@@ -54,7 +54,7 @@ def forward(mode, models, t, x):
         l_standard = torch.mean(x_diff ** 2) + torch.mean(((1 - torch.abs(x_diff)) - cx) ** 2) + \
                      torch.mean(t_diff ** 2) + torch.mean(((1 - torch.abs(t_diff)) - ct) ** 2)
 
-        return l_cyc + l_standard
+        return l_cyc + l_standard, x_hat, cx, t_hat, ct
     else:
         raise KeyError(f"Unknown mode {mode}!")
 
