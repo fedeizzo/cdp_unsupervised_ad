@@ -24,5 +24,4 @@ module load Python/3.8.6
 # pip install -r ~/cdp_unsupervised_ad/requirements.txt
 
 # Running Main Program
-# srun ${HOME}/cdp_unsupervised_ad/scripts/run_t2x.sh
-srun ${HOME}/cdp_unsupervised_ad/scripts/run_t2xa.sh
+srun ${HOME}/cdp_unsupervised_ad/scripts/run_main.sh

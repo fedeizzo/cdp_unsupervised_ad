@@ -9,10 +9,6 @@ from torch.utils.data import Dataset, DataLoader
 
 from data.transforms import AllRandomTransforms, NormalizedTensorTransform
 
-# Definitions
-# Bad indices from dataset A (5x5 codes)
-INDICES_BAD_A_5x5 = [29, 39, 104, 106, 110, 120, 130, 140, 141, 150, 174, 208, 226, 235, 244, 270, 280, 290, 300]
-
 
 def get_split(t_dir,
               x_dirs,

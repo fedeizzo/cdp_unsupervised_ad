@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 from argparse import ArgumentParser
 
 import numpy as np
@@ -8,7 +9,7 @@ import matplotlib.pyplot as plt
 import torch
 
 # Arguments keys
-DATA_DIR = 'data'
+DATA_DIR = '../data'
 EPOCHS = "epochs"
 MODE = "mode"
 ORIGINALS = "originals"
@@ -20,12 +21,22 @@ MODEL = "model"
 RESULT_DIR = "result_dir"
 SEED = "seed"
 
-# Fake names
+# Originals and Fakes
+AVAILABLE_ORIGINALS = ("55", "76")
 FAKE_NAMES = ("Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76")
 
+
 # Modes
-AVAILABLE_MODES = ("t2x", "t2xa", "x2t", "x2ta", "both", "both_a")
-AVAILABLE_ORIGINALS = ("55", "76")
+class Mode(Enum):
+    MODE_T2X = 1
+    MODE_T2XA = 2
+    MODE_X2T = 3
+    MODE_X2TA = 4
+    MODE_BOTH = 5
+    MODE_BOTH_A = 6
+
+
+AVAILABLE_MODES = (Mode.MODE_T2X, Mode.MODE_T2XA, Mode.MODE_X2T, Mode.MODE_X2TA, Mode.MODE_BOTH, Mode.MODE_BOTH_A)
 
 
 def set_reproducibility(seed):
