@@ -11,10 +11,11 @@ do
     mkdir "${HOME}"/${PROJECT_DIR}/results/${ORIGINALS}
     for MODE in 1 2 3 4 5 6
     do
+      mkdir "${HOME}"/${PROJECT_DIR}/results/${ORIGINALS}/${MODE}
       echo python3 -u \
       "${HOME}"/cdp_unsupervised_ad/src/t2x.py \
       --data "${HOME}"/${PROJECT_DIR}/datasets/1x1 \
-      --mode $MODE
+      --mode $MODE \
       --originals $ORIGINALS \
       --epochs 150 \
       --bs 16 \

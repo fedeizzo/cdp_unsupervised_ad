@@ -7,7 +7,7 @@
 #SBATCH --mem-per-cpu 20000
 #SBATCH --partition private-sip-gpu
 #SBATCH --gpus=ampere:1
-#SBATCH --time 11:55:00
+#SBATCH --time 23:59:59
 
 # Loading required modules
 module load GCC/10.2.0 CUDA/11.1.1
