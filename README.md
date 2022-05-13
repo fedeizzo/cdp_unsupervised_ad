@@ -23,6 +23,9 @@ Where:
  - `seed` is the randomizing seed for the experiment
  - `r_dir` is the directory where all results (models, auc scores, ...) will be stored
 
+Optionally:
+ - `--no_train` to just test already existing models
+
 ### Modalities
 There are currently 6 possible modalities:
  - **1** The model is trained to produce a printed CDP given the template (```t2x```).

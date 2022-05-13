@@ -89,6 +89,7 @@ def main():
     bs = args[BS]
     tp = args[TP]
     vp = args[VP]
+    no_train = args[NO_TRAIN]
     seed = args[SEED]
     print(args)
 
@@ -102,8 +103,8 @@ def main():
     train_loader, val_loader, test_loader, _ = load_cdp_data(base_dir, tp, vp, bs, originals=originals)
 
     # Training new model(s) is result directory does not exist
-    if not os.path.isdir(result_dir):
-        print(f"No '{result_dir}' directory was found: Training new models.")
+    if not no_train:
+        print(f"Training new models.")
 
         # Creating result directory
         create_dir(result_dir)
