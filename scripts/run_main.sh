@@ -14,7 +14,7 @@ do
     for MODE in 1 2 3 4 5 6
     do
       mkdir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/${MODE}/${SEED}
-      echo python3 -u \
+      python3 -u \
       "${HOME}"/cdp_unsupervised_ad/src/t2x.py \
       --data "${HOME}"/${PROJECT_DIR}/datasets/1x1 \
       --mode $MODE \
