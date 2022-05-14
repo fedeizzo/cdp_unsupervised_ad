@@ -1,8 +1,8 @@
 from torch.optim import Adam
 
 from models.models import get_models
-from data.utils import load_cdp_data
 from models.utils import forward, store_models, load_models
+from data.utils import load_cdp_data
 from utils.anomaly_functions import *
 from utils.utils import *
 

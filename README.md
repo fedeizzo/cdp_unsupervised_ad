@@ -28,10 +28,10 @@ Optionally:
 
 ### Modalities
 There are currently 6 possible modalities:
- - **1** The model is trained to produce a printed CDP given the template (```t2x```).
- - **2** The model is trained to produce a printed CDP and a confidence map given the template (```t2xa```).
- - **3** The model is trained to produce a template CDP given the printed (```x2t```).
- - **4** The model is trained to produce a template CDP and a confidence map given the printed (```x2ta```).
- - **5** Two models are trained: The first model is trained as in **1** and the second as in **3**. A Cycle-consistent term in the loss is also used (```both```).
- - **6** Two models are trained: The first model is trained as in **2** and the second as in **4**. A Cycle-consistent term in the loss is also used (```both_a```).
+ - **t2x** The model is trained to produce a printed CDP given the template (```t2x```).
+ - **t2xa** The model is trained to produce a printed CDP and a confidence map given the template (```t2xa```).
+ - **x2t** The model is trained to produce a template CDP given the printed (```x2t```).
+ - **x2ta** The model is trained to produce a template CDP and a confidence map given the printed (```x2ta```).
+ - **both** Two models are trained: The first model is trained as in **1** and the second as in **3**. A Cycle-consistent term in the loss is also used (```both```).
+ - **both_a** Two models are trained: The first model is trained as in **2** and the second as in **4**. A Cycle-consistent term in the loss is also used (```both_a```).
 

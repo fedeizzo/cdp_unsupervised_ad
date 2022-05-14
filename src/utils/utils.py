@@ -28,15 +28,12 @@ FAKE_NAMES = ("Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76")
 
 # Modes
 class Mode(Enum):
-    MODE_T2X = 1
-    MODE_T2XA = 2
-    MODE_X2T = 3
-    MODE_X2TA = 4
-    MODE_BOTH = 5
-    MODE_BOTH_A = 6
-
-
-AVAILABLE_MODES = (Mode.MODE_T2X, Mode.MODE_T2XA, Mode.MODE_X2T, Mode.MODE_X2TA, Mode.MODE_BOTH, Mode.MODE_BOTH_A)
+    MODE_T2X = 't2x'
+    MODE_T2XA = 't2xa'
+    MODE_X2T = 'x2t'
+    MODE_X2TA = 'x2ta'
+    MODE_BOTH = 'both'
+    MODE_BOTH_A = 'both_a'
 
 
 def set_reproducibility(seed):
@@ -49,7 +46,7 @@ def parse_args():
     parser = ArgumentParser()
     parser.add_argument(f"--{DATA_DIR}", type=str, help="Data root directory path")
     parser.add_argument(f"--{EPOCHS}", type=int, help="Number of epochs", default=100)
-    parser.add_argument(f"--{MODE}", choices=AVAILABLE_MODES, help="Kind of model used", default=AVAILABLE_MODES[0])
+    parser.add_argument(f"--{MODE}", type=Mode, choices=list(Mode), help="Kind of model used", default=list(Mode)[0])
     parser.add_argument(f"--{ORIGINALS}", choices=AVAILABLE_ORIGINALS, help="Originals to be used for training",
                         default=AVAILABLE_ORIGINALS[0])
     parser.add_argument(f"--{BS}", type=int, help="Batch size", default=16)

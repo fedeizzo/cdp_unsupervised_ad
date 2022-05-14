@@ -11,11 +11,12 @@ for SEED in 0 1 2 3 4
 do
   for ORIGINAL in 76
   do
-    for MODE in 1 2 3 4 5 6
+    mkdir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}
+    for MODE in t2x t2xa x2t x2ta both both_a
     do
-      mkdir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/${MODE}/${SEED}
+      mkdir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}/${MODE}
       python3 -u \
-      "${HOME}"/cdp_unsupervised_ad/src/t2x.py \
+      "${HOME}"/cdp_unsupervised_ad/src/main.py \
       --data "${HOME}"/${PROJECT_DIR}/datasets/1x1 \
       --mode $MODE \
       --originals $ORIGINAL \
@@ -25,7 +26,7 @@ do
       --tp 0.4 \
       --vp 0.1 \
       --seed $SEED \
-      --result_dir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/${MODE}/${SEED}
+      --result_dir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}/${MODE}
     done
   done
 done
