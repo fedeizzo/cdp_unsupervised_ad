@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import torch
 
 # Arguments keys
-DATA_DIR = '../data'
+DATA_DIR = 'data'
 EPOCHS = "epochs"
 MODE = "mode"
 ORIGINALS = "originals"
