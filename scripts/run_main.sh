@@ -2,19 +2,19 @@
 
 PROJECT_DIR=cdp_unsupervised_ad
 
-mkdir "${HOME}"/${PROJECT_DIR}/results
-mkdir "${HOME}"/${PROJECT_DIR}/results/55
-mkdir "${HOME}"/${PROJECT_DIR}/results/76
+mkdir -p "${HOME}"/${PROJECT_DIR}/results
+mkdir -p "${HOME}"/${PROJECT_DIR}/results/55
+mkdir -p "${HOME}"/${PROJECT_DIR}/results/76
 
 
 for SEED in 0 1 2 3 4
 do
   for ORIGINAL in 76
   do
-    mkdir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}
+    mkdir -p "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}
     for MODE in t2x t2xa x2t x2ta both both_a
     do
-      mkdir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}/${MODE}
+      mkdir -p "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}/${MODE}
       python3 -u \
       "${HOME}"/cdp_unsupervised_ad/src/main.py \
       --data "${HOME}"/${PROJECT_DIR}/datasets/1x1 \
