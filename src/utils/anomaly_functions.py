@@ -20,12 +20,12 @@ def get_anomaly_score(mode, models, t, y):
         t2x_model, x2t_model = models[0], models[1]
         t2x_score = get_anomaly_score(Mode.MODE_T2X, [t2x_model], t, y)
         x2t_score = get_anomaly_score(Mode.MODE_X2T, [x2t_model], t, y)
-        return torch.sqrt(t2x_score ** 2 + x2t_score ** 2)
+        return (t2x_score ** 2 + x2t_score ** 2) ** 0.5
     if mode == Mode.MODE_BOTH_A:
         t2xa_model, x2ta_model = models[0], models[1]
         t2xa_score = get_anomaly_score(Mode.MODE_T2XA, [t2xa_model], t, y)
         x2ta_score = get_anomaly_score(Mode.MODE_X2TA, [x2ta_model], t, y)
-        return torch.sqrt(t2xa_score ** 2 + x2ta_score ** 2)
+        return (t2xa_score ** 2 + x2ta_score ** 2) ** 0.5
 
 
 def mse_af(actual, estimate):
