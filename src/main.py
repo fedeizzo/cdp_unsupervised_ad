@@ -116,6 +116,9 @@ def main():
     print(f"\n\nTesting trained model(s)")
     test(mode, test_loader, device, f"Originals {originals} and fakes ({mode.name})", result_dir)
 
+    # Notifying program has finished
+    print(f"\nProgram completed successfully. Results are available at {result_dir}")
+
 
 if __name__ == '__main__':
     main()
