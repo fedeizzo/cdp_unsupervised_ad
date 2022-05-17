@@ -91,13 +91,13 @@ def store_scores(o_scores, f_scores, dest):
 
 
 def store_hist_picture(o_scores, f_scores, dest,
-                       title="Anomaly scores", pic_name="anomaly_scores.png", fakes_names=FAKE_NAMES):
+                       title="Anomaly scores", pic_name="anomaly_scores.png", fakes_names=FAKE_NAMES, alpha=0.5):
     o_scores, f_scores = np.array(o_scores), np.array(f_scores)
     n_bins = len(o_scores) // 4
-    plt.hist(o_scores, bins=n_bins, label="Originals")
+    plt.hist(o_scores, bins=n_bins, alpha=alpha, label="Originals")
     auc_roc_scores = []
     for f_name, f_score in zip(fakes_names, f_scores):
-        plt.hist(f_score, bins=n_bins, label=f_name)
+        plt.hist(f_score, bins=n_bins, alpha=alpha, label=f_name)
         auc_roc_scores.append(get_roc_auc_score(o_scores, f_score))
 
     np.save(os.path.join(dest, "auc_scores.npy"), np.array(auc_roc_scores))
