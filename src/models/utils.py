@@ -18,6 +18,13 @@ MODE_TO_PATHS = {
 }
 
 
+def normalize(tensor):
+    """Returns a tensor 'normalized' in range [0, 1]"""
+    result = tensor - torch.min(tensor)
+    result = result / torch.max(tensor)
+    return result
+
+
 def forward(mode, models, t, x):
     """Method which returns the loss for the given mode using the given models, templates and originals"""
     if mode == Mode.MODE_T2X:
@@ -26,14 +33,14 @@ def forward(mode, models, t, x):
     elif mode == Mode.MODE_T2XA:
         x_hat, c = models[0](t).chunk(2, 1)
         diff = (x - x_hat)
-        return torch.mean(diff ** 2) + torch.mean(((1 - torch.abs(diff)) - c) ** 2), x_hat, c
+        return torch.mean(diff ** 2) + torch.mean((normalize(1 - torch.abs(diff)) - c) ** 2), x_hat, c
     elif mode == Mode.MODE_X2T:
         t_hat = models[0](x)
         return torch.mean((t_hat - t) ** 2), t_hat
     elif mode == Mode.MODE_X2TA:
         t_hat, c = models[0](x).chunk(2, 1)
         diff = (t - t_hat)
-        return torch.mean(diff ** 2) + torch.mean(((1 - torch.abs(diff)) - c) ** 2), t_hat, c
+        return torch.mean(diff ** 2) + torch.mean((normalize(1 - torch.abs(diff)) - c) ** 2), t_hat, c
     elif mode == Mode.MODE_BOTH:
         t2x_model, x2t_model = models[0], models[1]
         x_hat = t2x_model(t)
@@ -51,8 +58,8 @@ def forward(mode, models, t, x):
                 torch.mean((t2xa_model(t_hat).chunk(2, 1)[0] - x) ** 2)
 
         x_diff, t_diff = x_hat - x, t_hat - t
-        l_standard = torch.mean(x_diff ** 2) + torch.mean(((1 - torch.abs(x_diff)) - cx) ** 2) + \
-                     torch.mean(t_diff ** 2) + torch.mean(((1 - torch.abs(t_diff)) - ct) ** 2)
+        l_standard = torch.mean(x_diff ** 2) + torch.mean((normalize(1 - torch.abs(x_diff)) - cx) ** 2) + \
+                     torch.mean(t_diff ** 2) + torch.mean((normalize(1 - torch.abs(t_diff)) - ct) ** 2)
 
         return l_cyc + l_standard, x_hat, cx, t_hat, ct
     else:
