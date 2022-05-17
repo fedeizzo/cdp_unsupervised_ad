@@ -21,7 +21,7 @@ MODE_TO_PATHS = {
 def normalize(tensor):
     """Returns a tensor 'normalized' in range [0, 1]"""
     result = tensor - torch.min(tensor)
-    result = result / torch.max(tensor)
+    result = result / torch.max(result) if torch.max(result) > 0 else torch.ones(result.shape)
     return result
 
 
