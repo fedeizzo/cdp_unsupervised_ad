@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 
 
 def show_cdps(cdps, titles):
+    """Shows CPDs in one line with the given titles for each CDP"""
     n = len(cdps)
     fig = plt.figure(figsize=(9, 13))
 

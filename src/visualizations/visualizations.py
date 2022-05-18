@@ -42,7 +42,7 @@ def visualize_batches(mode, models, loader, device, n_batches=1):
         _, *result = forward(mode, models, templates, originals)
 
         # Displaying output
-        for m, fn in zip(AVAILABLE_MODES, [viz_t2x, viz_x2t, viz_t2xa, viz_x2ta, viz_both, viz_both_a]):
+        for m, fn in zip(list(Mode), [viz_t2x, viz_x2t, viz_t2xa, viz_x2ta, viz_both, viz_both_a]):
             if mode == m:
                 fn(templates, originals, batch["fakes"].to(device), *result)
 

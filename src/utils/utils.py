@@ -28,6 +28,7 @@ FAKE_NAMES = ("Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76")
 
 # Modes
 class Mode(Enum):
+    """Enum with all possible modalities for program execution"""
     MODE_T2X = 't2x'
     MODE_T2XA = 't2xa'
     MODE_X2T = 'x2t'
@@ -37,12 +38,14 @@ class Mode(Enum):
 
 
 def set_reproducibility(seed):
+    """Sets the reproducibility of the experiments with the given seed."""
     torch.manual_seed(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
 
 def parse_args():
+    """Parses program arguments and returns a dictionary adressable with the above-defined macros"""
     parser = ArgumentParser()
     parser.add_argument(f"--{DATA_DIR}", type=str, help="Data root directory path")
     parser.add_argument(f"--{EPOCHS}", type=int, help="Number of epochs", default=100)
@@ -61,6 +64,7 @@ def parse_args():
 
 
 def get_device(verbose=True):
+    """Gets a CUDA device if available"""
     cuda = torch.cuda.is_available()
     device = torch.device("cuda" if cuda else "cpu")
     if verbose:
@@ -74,17 +78,20 @@ def join(path1, path2):
 
 
 def create_dir(path):
+    """Creates a directory if it does not exist already"""
     if not os.path.isdir(path):
         os.mkdir(path)
 
 
 def get_roc_auc_score(o_scores, f_scores):
+    """Returns the ROC AUC score for the given original and fake scores. Originals should score lower."""
     y_true = [*[0 for _ in range(len(o_scores))], *[1 for _ in range(len(f_scores))]]
     y_score = [*o_scores, *f_scores]
     return roc_auc_score(y_true, y_score)
 
 
 def store_scores(o_scores, f_scores, dest):
+    """Stores scores into NumPy arrays in the dest folder."""
     o_scores, f_scores = np.array(o_scores), np.array(f_scores)
     np.save(os.path.join(dest, "o_scores.npy"), o_scores)
     np.save(os.path.join(dest, "f_scores.npy"), f_scores)
@@ -92,6 +99,7 @@ def store_scores(o_scores, f_scores, dest):
 
 def store_hist_picture(o_scores, f_scores, dest,
                        title="Anomaly scores", pic_name="anomaly_scores.png", fakes_names=FAKE_NAMES, alpha=0.5):
+    """Computes and stores the histogram for the original and fakes, based on their scores"""
     o_scores, f_scores = np.array(o_scores), np.array(f_scores)
     n_bins = len(o_scores) // 4
     plt.hist(o_scores, bins=n_bins, alpha=alpha, label="Originals")
