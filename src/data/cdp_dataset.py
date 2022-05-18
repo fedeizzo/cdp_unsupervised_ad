@@ -37,9 +37,6 @@ def get_split(t_dir,
     # Obtaining all images indices and shuffling them
     all_indices = np.arange(1, len(os.listdir(t_dir)) + 1)
 
-    if bad_indexes:
-        all_indices = [idx for idx in all_indices if idx not in INDICES_BAD_A_5x5]
-
     np.random.shuffle(all_indices)
     n = len(all_indices)
 
