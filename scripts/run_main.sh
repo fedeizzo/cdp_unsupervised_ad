@@ -21,7 +21,7 @@ do
       --mode $MODE \
       --originals $ORIGINAL \
       --epochs 150 \
-      --bs 16 \
+      --bs 64 \
       --lr 0.01 \
       --tp 0.4 \
       --vp 0.1 \
