@@ -40,6 +40,7 @@ class Mode(Enum):
 
 def set_reproducibility(seed):
     """Sets the reproducibility of the experiments with the given seed."""
+    np.random.seed(seed)
     torch.manual_seed(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
