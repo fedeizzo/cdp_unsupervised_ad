@@ -9,7 +9,7 @@ def get_anomaly_score(mode, models, t, y):
     if mode == Mode.MODE_T2X:
         return mse_af(y, models[0](t))
     if mode == Mode.MODE_X2T:
-        return mse_af(t, models[0](y))
+        return binarize_mse_af(t, models[0](y))
     if mode == Mode.MODE_T2XA:
         y_hat, confidence = models[0](t).chunk(2, 1)
         return confidence_mse_af(y, y_hat, confidence)
@@ -29,10 +29,17 @@ def get_anomaly_score(mode, models, t, y):
 
 
 def mse_af(actual, estimate):
-    """Returns the batch-wise MSE between printed codes and model estimation given by the template"""
+    """Returns the batch-wise MSE"""
     return torch.mean((estimate - actual) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
 
 
+def binarize_mse_af(actual, estimate, threshold=.5):
+    """Returns the batch-wise MSE by first applying a binarization on the estimate"""
+    estimate[estimate < threshold] = 0
+    estimate[estimate >= threshold] = 1
+    return mse_af(actual, estimate)
+
+
 def confidence_mse_af(actual, estimate, confidence):
-    """Returns the MSEs (per samples) between printed and estimated images weighted by the confidence tensor"""
+    """Returns the batch-wise MSE weighted by a confidence tensor"""
     return torch.mean(confidence * (estimate - actual) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()

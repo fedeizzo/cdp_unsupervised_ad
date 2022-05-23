@@ -2,6 +2,23 @@ import torch.nn as nn
 from utils.utils import Mode
 
 
+class CDPConv(nn.Module):
+    def __int__(self, in_channels=1, out_channels=1, h_channels=1):
+        """Convolution, relu and transpose convolution that copies values to make output 3x3 times bigger."""
+        super(CDPConv, self).__init__()
+        self.conv = nn.Conv2d(in_channels, h_channels, 9, 3, 3)
+        self.tconv = nn.ConvTranspose2d(h_channels, out_channels, 9, 3, 3)
+        self.relu = nn.ReLU()
+
+        self.tconv.weight.data.zero_()
+        self.tconv.weight.data[:, :, 3:6, 3:6] = 1
+        self.tconv.bias.data.zero_()
+        self.tconv.requires_grad_(False)
+
+    def forward(self, x):
+        return self.tconv(self.relu(self.conv(x)))
+
+
 def _get_simple_model(mode, n_hidden_convs=1, hidden_channels=10, kernel_size=7):
     """Creates a simple CNN model that preserves spatial resolution. Depending on the mode, outputs 1 or 2 channels."""
     # Control on inputs
@@ -26,7 +43,10 @@ def _get_simple_model(mode, n_hidden_convs=1, hidden_channels=10, kernel_size=7)
         model.append(relu)
 
     # Model output
-    model.append(nn.Conv2d(hidden_channels, out_channels, kernel_size, padding=padding))
+    if mode in [Mode.MODE_X2T, Mode.MODE_X2TA]:
+        model.append(CDPConv(hidden_channels, out_channels))
+    else:
+        model.append(nn.Conv2d(hidden_channels, out_channels, kernel_size, padding=padding))
     model.append(nn.Sigmoid())
 
     return model
