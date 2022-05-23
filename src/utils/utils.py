@@ -24,6 +24,7 @@ SEED = "seed"
 # Originals and Fakes
 AVAILABLE_ORIGINALS = ("55", "76")
 FAKE_NAMES = ("Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76")
+FAKE_NUMBERS = ("55/55", "55/76", "76/55", "76/76")
 
 
 # Modes
