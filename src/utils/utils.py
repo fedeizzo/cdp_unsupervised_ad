@@ -1,4 +1,5 @@
 import os
+import random
 from enum import Enum
 from argparse import ArgumentParser
 
@@ -40,6 +41,7 @@ class Mode(Enum):
 
 def set_reproducibility(seed):
     """Sets the reproducibility of the experiments with the given seed."""
+    random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.backends.cudnn.benchmark = False
