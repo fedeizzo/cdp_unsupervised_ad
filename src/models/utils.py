@@ -1,7 +1,7 @@
 import os
 import torch
 
-from src.utils.utils import Mode
+from utils.utils import Mode
 
 DEFAULT_T2X_MODEL_PATH = "t2x.pt"
 DEFAULT_T2XA_MODEL_PATH = "t2xa.pt"
