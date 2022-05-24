@@ -43,3 +43,10 @@ def binarize_mse_af(actual, estimate, threshold=.5):
 def confidence_mse_af(actual, estimate, confidence):
     """Returns the batch-wise MSE weighted by a confidence tensor"""
     return torch.mean(confidence * (estimate - actual) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
+
+
+def binarize_confidence_mse_af(actual, estimate, confidence, threshold=.5):
+    """Returns the batch-wise MSE using a binarizing threshold and weighting by a confidence tensor"""
+    estimate[estimate < threshold] = 0
+    estimate[estimate >= threshold] = 1
+    return torch.mean(confidence * (estimate - actual) ** 2, dim=[1, 2, 3]).detach().cpu().numpy()
