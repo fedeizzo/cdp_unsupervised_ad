@@ -97,7 +97,7 @@ def _get_simple_model(mode, n_hidden_convs=1, hidden_channels=10, kernel_size=7)
     if mode in [Mode.MODE_X2T, Mode.MODE_X2TA]:
         model.append(CDPConv(hidden_channels, out_channels))
     else:
-        model.append(CDPConv(hidden_channels, out_channels, kernel_size, padding=padding))
+        model.append(CDPConv(hidden_channels, out_channels))
     model.append(nn.Sigmoid())
 
     return model
