@@ -3,7 +3,7 @@ from utils.utils import Mode
 
 
 class CDPConv(nn.Module):
-    def __int__(self, in_channels=1, out_channels=1, h_channels=1):
+    def __init__(self, in_channels=1, out_channels=1, h_channels=1):
         """Convolution, relu and transpose convolution that copies values to make output 3x3 times bigger."""
         super(CDPConv, self).__init__()
         self.conv = nn.Conv2d(in_channels, h_channels, 9, 3, 3)
@@ -23,8 +23,9 @@ class ResidualBlock(nn.Module):
     """
     Residual Block with instance normalization
     """
+
     def __init__(self, in_channels, out_channels):
-        super().__init__()
+        super(ResidualBlock, self).__init__()
 
         self.residual_block = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
@@ -64,7 +65,10 @@ def _get_bottleneck_model(mode, conv_dim, repeat_num):
         curr_dim = curr_dim // 2
 
     layers.append(nn.Conv2d(curr_dim, out_channels, kernel_size=7, stride=1, padding=3, bias=False))
-    layers.append(CDPConv(out_channels, out_channels))
+
+    if mode in [Mode.MODE_X2T, Mode.MODE_X2TA]:
+        layers.append(CDPConv(in_channels=out_channels, out_channels=out_channels))
+
     layers.append(nn.Sigmoid())
 
     return nn.Sequential(*layers)
@@ -95,7 +99,7 @@ def _get_simple_model(mode, n_hidden_convs=1, hidden_channels=10, kernel_size=7)
 
     # Model output
     if mode in [Mode.MODE_X2T, Mode.MODE_X2TA]:
-        model.append(CDPConv(hidden_channels, out_channels))
+        model.append(CDPConv(in_channels=hidden_channels, out_channels=out_channels))
     else:
         model.append(nn.Conv2d(hidden_channels, out_channels, kernel_size, padding=padding))
     model.append(nn.Sigmoid())
