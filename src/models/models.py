@@ -6,8 +6,9 @@ class ResidualBlock(nn.Module):
     """
     Residual Block with instance normalization
     """
+
     def __init__(self, in_channels, out_channels):
-        super().__init__()
+        super(ResidualBlock, self).__init__()
 
         self.residual_block = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),

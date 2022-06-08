@@ -46,9 +46,8 @@ def forward(mode, models, t, x):
         x_hat = t2x_model(t)
         t_hat = x2t_model(x)
 
-        l_cyc = torch.mean((x2t_model(x_hat) - t) ** 2) + torch.mean((t2x_model(t_hat) - x) ** 2)
-        l_standard = torch.mean((x_hat - x) ** 2) + torch.mean((t_hat - t) ** 2)
-        return l_cyc + l_standard, x_hat, t_hat
+        l_standard = (torch.mean((x_hat - x) ** 2) + torch.mean((t_hat - t) ** 2)) / 2
+        return l_standard, x_hat, t_hat
     elif mode == Mode.MODE_BOTH_A:
         t2xa_model, x2ta_model = models[0], models[1]
         x_hat, cx = t2xa_model(t).chunk(2, 1)
