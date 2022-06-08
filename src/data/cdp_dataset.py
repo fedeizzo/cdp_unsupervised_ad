@@ -2,6 +2,7 @@
 import os
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 
 import torch
@@ -88,7 +89,8 @@ def get_split(t_dir,
 
 
 class CDPDataset(Dataset):
-    def __init__(self, t_dir, x_dirs, f_dirs, indices, pre_transform=NormalizedTensorTransform(), post_transform=None,
+    def __init__(self, t_dir, x_dirs, f_dirs, indices=None, pre_transform=NormalizedTensorTransform(),
+                 post_transform=None,
                  return_diff=False, return_stack=False, multi_gpu=False, load=True):
         """
             Copy Detection Pattern (CDP) dataset. Data is loaded in triplets of templates, originals and fakes (t, x, f).
@@ -109,7 +111,7 @@ class CDPDataset(Dataset):
         self.t_dir = t_dir
         self.x_dirs = x_dirs
         self.f_dirs = f_dirs
-        self.indices = indices
+        self.indices = indices if indices is not None else np.arange(1000)
         self.pre_transform = pre_transform
         self.post_transform = post_transform
         self.return_diff = return_diff
@@ -121,7 +123,7 @@ class CDPDataset(Dataset):
         self.file_names = []
         all_dirs = [t_dir, *x_dirs, *f_dirs]
         for fn in os.listdir(t_dir):
-            if np.all([os.path.isfile(os.path.join(d, fn)) for d in all_dirs]) and int(fn.split(".")[0]) in indices:
+            if np.all([os.path.isfile(os.path.join(d, fn)) for d in all_dirs]) and int(fn.split(".")[0]) in self.indices:
                 self.file_names.append(fn)
 
         if load:
@@ -272,4 +274,65 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+
+    from tqdm import tqdm
+
+
+    def insert(dictionary, key, value):
+        if key not in dictionary.keys():
+            dictionary[key] = [value]
+        else:
+            dictionary[key].append(value)
+
+    def l2dist(x, y):
+        return torch.sum((x - y) ** 2).sqrt().item()
+
+
+    t_dir = './../../datasets/1x1/templates'
+    x_dirs = [
+        './../../datasets/1x1/originals_55',
+        './../../datasets/1x1/originals_55_a',
+        './../../datasets/1x1/originals_55_b',
+        './../../datasets/1x1/originals_76',
+        './../../datasets/1x1/originals_76_a',
+        './../../datasets/1x1/originals_76_b',
+    ]
+
+    f_dirs = [
+        './../../datasets/1x1/fakes_55_55',
+        './../../datasets/1x1/fakes_55_76',
+        './../../datasets/1x1/fakes_76_55',
+        './../../datasets/1x1/fakes_76_76'
+    ]
+
+    dataset = CDPDataset(
+        t_dir,
+        x_dirs,
+        f_dirs,
+    )
+
+    l2_distances = {}
+
+    for sample in tqdm(dataset):
+        o55 = sample["originals"][0]
+        o55_a, o55_b = sample["originals"][1], sample["originals"][2]
+        insert(l2_distances, ("o55", "o55_a"), l2dist(o55, o55_a))
+        insert(l2_distances, ("o55", "o55_b"), l2dist(o55, o55_b))
+
+        o76 = sample["originals"][3]
+        o76_a, o76_b = sample["originals"][4], sample["originals"][5]
+        insert(l2_distances, ("o76", "o76_a"), l2dist(o76, o76_a))
+        insert(l2_distances, ("o76", "o76_b"), l2dist(o76, o76_b))
+
+        for o_name, original in zip(["o55", "o76"], [o55, o76]):
+            for f_name, fake in zip(["f55/55", "f55/76", "f76/55", "f76/76"], sample["fakes"]):
+                insert(l2_distances, (o_name, f_name), l2dist(original, fake))
+
+    for original in ["o55", "o76"]:
+        for key in l2_distances:
+            if original in key:
+                plt.hist(l2_distances[key], label=str(key), bins=100)
+        plt.legend()
+        plt.title(f"L2 distance from original {original}")
+        plt.show()

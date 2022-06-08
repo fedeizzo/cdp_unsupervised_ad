@@ -7,7 +7,12 @@ def show_cdps(cdps, titles, crop_size=None):
     fig = plt.figure(figsize=(9, 13))
 
     for i, (cdp, title) in enumerate(zip(cdps, titles)):
-        cdp = cdp.detach().cpu().numpy()[0].astype(float)
+        cdp = cdp.detach().cpu().numpy()
+
+        while len(cdp.shape) > 2:
+            cdp = cdp[0]
+
+        cdp = cdp.astype(float)
 
         if crop_size:
             h, w = cdp.shape
