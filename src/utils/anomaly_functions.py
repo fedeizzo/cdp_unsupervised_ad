@@ -19,7 +19,7 @@ def get_anomaly_score(mode, models, t, y):
     if mode == Mode.MODE_BOTH:
         t2x_model, x2t_model = models[0], models[1]
         x_hat = t2x_model(t)
-        c = 1 - torch.abs(x2t_model(x_hat) - t)
+        c = 1 - torch.abs(x_hat - t)
         anomaly_map = (c * (x_hat - y) ** 2)
         return torch.sum(anomaly_map, dim=[1, 2, 3]).detach().cpu().numpy()
     if mode == Mode.MODE_BOTH_A:
