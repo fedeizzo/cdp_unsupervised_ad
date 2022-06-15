@@ -1,6 +1,25 @@
 import torch
 
-from utils.utils import Mode
+from src.utils.utils import Mode
+
+
+def keep_top_percent(confidence: torch.Tensor, percent: float, binarize=False):
+    """Given a confidence tensor, masks (to zero) values that are below a percentage in the 0-th dimension"""
+    assert 0 < percent < 1, f"Error: Percentage must be between 0 and 1 (excluded), but got {percent}"
+
+    result = []
+    for sample_i in confidence:
+        t = torch.quantile(sample_i, percent)
+        mask = sample_i >= t
+
+        modified = torch.clone(sample_i)
+        modified[torch.logical_not(mask)] = 0
+
+        if binarize:
+            modified[mask] = 1
+
+        result.append(modified)
+    return torch.stack(result)
 
 
 def get_anomaly_score(mode, models, t, y):
@@ -19,8 +38,7 @@ def get_anomaly_score(mode, models, t, y):
     if mode == Mode.MODE_BOTH:
         t2x_model, x2t_model = models[0], models[1]
         x_hat = t2x_model(t)
-        # c = 1 - torch.abs(x_hat - t)
-        c = torch.exp(-10 * torch.abs(x_hat - t))
+        c = keep_top_percent(1 - torch.abs(x_hat - t), 0.85)
         anomaly_map = (c * (x_hat - y) ** 2)
         return torch.sum(anomaly_map, dim=[1, 2, 3]).detach().cpu().numpy()
     if mode == Mode.MODE_BOTH_A:
