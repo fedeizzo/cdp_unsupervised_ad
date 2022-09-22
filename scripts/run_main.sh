@@ -2,17 +2,11 @@
 
 PROJECT_DIR=cdp_unsupervised_ad
 
-mkdir -p "${HOME}"/${PROJECT_DIR}/results
-mkdir -p "${HOME}"/${PROJECT_DIR}/results/55
-mkdir -p "${HOME}"/${PROJECT_DIR}/results/76
-
-
 for SEED in 0 1 2 3 4 5 6 7 8 9
 do
   for ORIGINAL in 55 76
   do
-    mkdir -p "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}
-    for MODE in both
+    for MODE in t2x
     do
       mkdir -p "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}/${MODE}
       python3 -u \

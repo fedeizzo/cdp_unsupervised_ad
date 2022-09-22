@@ -10,7 +10,7 @@ def keep_top_percent(confidence: torch.Tensor, percent: float, binarize=False):
     result = []
     for sample_i in confidence:
         t = torch.quantile(sample_i, percent)
-        mask = sample_i >= t
+        mask = sample_i > t
 
         modified = torch.clone(sample_i)
         modified[torch.logical_not(mask)] = 0
@@ -26,7 +26,11 @@ def get_anomaly_score(mode, models, t, y):
     """Given the mode, pre-trained model(s), templates and test printed CDPs, returns the anomaly scores per each sample
     based on the provided mode."""
     if mode == Mode.MODE_T2X:
-        return mse_af(y, models[0](t))
+        t2x_model, x2t_model = models[0], models[1]
+        x_hat = t2x_model(t)
+        c = keep_top_percent(1 - torch.abs(x_hat - t), 0.85)
+        anomaly_map = (c * (x_hat - y) ** 2)
+        return torch.sum(anomaly_map, dim=[1, 2, 3]).detach().cpu().numpy()
     if mode == Mode.MODE_X2T:
         return binarize_mse_af(t, models[0](y))
     if mode == Mode.MODE_T2XA:
@@ -36,11 +40,10 @@ def get_anomaly_score(mode, models, t, y):
         t_hat, confidence = models[0](y).chunk(2, 1)
         return confidence_mse_af(t, t_hat, confidence)
     if mode == Mode.MODE_BOTH:
-        t2x_model, x2t_model = models[0], models[1]
-        x_hat = t2x_model(t)
-        c = keep_top_percent(1 - torch.abs(x_hat - t), 0.85)
-        anomaly_map = (c * (x_hat - y) ** 2)
-        return torch.sum(anomaly_map, dim=[1, 2, 3]).detach().cpu().numpy()
+        t2xa_model, x2ta_model = models[0], models[1]
+        t2x_score = get_anomaly_score(Mode.MODE_T2X, [t2xa_model], t, y)
+        x2t_score = get_anomaly_score(Mode.MODE_X2T, [x2ta_model], t, y)
+        return (t2x_score ** 2 + x2t_score ** 2) ** 0.5
     if mode == Mode.MODE_BOTH_A:
         t2xa_model, x2ta_model = models[0], models[1]
         t2xa_score = get_anomaly_score(Mode.MODE_T2XA, [t2xa_model], t, y)
