@@ -25,4 +25,4 @@ module load Python/3.8.6
 
 # Running Main Program
 # srun ${HOME}/cdp_unsupervised_ad/scripts/run_wifs.sh
-echo srun python3 -u "${HOME}"/cdp_unsupervised_ad/src/main.py "$1"
+srun python3 -u "${HOME}"/cdp_unsupervised_ad/src/main.py "$1"
