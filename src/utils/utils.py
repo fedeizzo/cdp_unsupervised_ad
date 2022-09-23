@@ -1,4 +1,5 @@
 import os
+import json
 import random
 from enum import Enum
 from argparse import ArgumentParser
@@ -10,6 +11,7 @@ import matplotlib.pyplot as plt
 import torch
 
 # Arguments keys
+CONF = 'conf'
 DATA_DIR = 'data'
 EPOCHS = "epochs"
 MODE = "mode"
@@ -51,6 +53,7 @@ def set_reproducibility(seed):
 def parse_args():
     """Parses program arguments and returns a dictionary adressable with the above-defined macros"""
     parser = ArgumentParser()
+    parser.add_argument(f"--{CONF}", type=str, help="Path to the file containing the configuration")
     parser.add_argument(f"--{DATA_DIR}", type=str, help="Data root directory path")
     parser.add_argument(f"--{EPOCHS}", type=int, help="Number of epochs", default=100)
     parser.add_argument(f"--{MODE}", type=Mode, choices=list(Mode), help="Kind of model used", default=list(Mode)[0])
@@ -64,7 +67,14 @@ def parse_args():
     parser.add_argument(f"--{RESULT_DIR}", type=str, help="Path where all results will be stored", default="./results")
     parser.add_argument(f"--{SEED}", type=int, help="Randomizing seed", default=0)
 
-    return vars(parser.parse_args())
+    args = vars(parser.parse_args())
+
+    if args[CONF] is not None:
+        f = open(args[CONF], "r")
+        args = json.load(f)
+        f.close()
+
+    return args
 
 
 def get_device(verbose=True):
@@ -84,7 +94,7 @@ def join(path1, path2):
 def create_dir(path):
     """Creates a directory if it does not exist already"""
     if not os.path.isdir(path):
-        os.mkdir(path)
+        os.makedirs(path, exist_ok=True)
 
 
 def get_roc_auc_score(o_scores, f_scores):

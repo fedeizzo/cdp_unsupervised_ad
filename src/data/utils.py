@@ -6,7 +6,7 @@ from data.cdp_dataset import get_split
 from data.transforms import NormalizedTensorTransform
 
 
-def load_cdp_data(data_dir,
+def load_cdp_data(args,
                   tp,
                   vp,
                   bs,
@@ -23,10 +23,17 @@ def load_cdp_data(data_dir,
                   ):
     """Loads CDP data from the given directory, splitting according to the percentages and applying the transforms.
     Only loads the particular type of original selected. Returns the 3 data loaders and the number of fake codes."""
-    t_dir = os.path.join(data_dir, 'templates')
-    x_dirs = [os.path.join(data_dir, f'originals_{originals}')]
-    f_dirs = [os.path.join(data_dir, 'fakes_55_55'), os.path.join(data_dir, 'fakes_55_76'),
-              os.path.join(data_dir, 'fakes_76_55'), os.path.join(data_dir, 'fakes_76_76')]
+    data_dir = args["data_dir"]
+    if data_dir:
+        t_dir = os.path.join(data_dir, 'templates')
+        x_dirs = [os.path.join(data_dir, f'{originals}')]
+        f_dirs = [
+            os.path.join(data_dir, 'fake_phone'),
+        ]
+    else:
+        t_dir = args["t_dir"]
+        x_dirs = args["x_dirs"]
+        f_dirs = args["f_dirs"]
 
     n_fakes = len(f_dirs)
     train_set, val_set, test_set = get_split(t_dir,

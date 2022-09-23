@@ -82,7 +82,6 @@ def main():
     args = parse_args()
     mode = args[MODE]
     n_epochs = args[EPOCHS]
-    data_dir = args[DATA_DIR]
     result_dir = args[RESULT_DIR]
     originals = args[ORIGINALS]
     lr = args[LR]
@@ -100,7 +99,7 @@ def main():
     device = get_device()
 
     # Loading data
-    train_loader, val_loader, test_loader, _ = load_cdp_data(data_dir, tp, vp, bs, originals=originals)
+    train_loader, val_loader, test_loader, _ = load_cdp_data(args, tp, vp, bs, originals=originals)
 
     # Training new model(s) is result directory does not exist
     if not no_train:

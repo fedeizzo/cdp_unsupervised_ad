@@ -20,8 +20,7 @@ do
       --tp 0.6 \
       --vp 0.1 \
       --seed $SEED \
-      --result_dir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}/${MODE} \
-      --no_train
+      --result_dir "${HOME}"/${PROJECT_DIR}/results/${ORIGINAL}/seed_${SEED}/${MODE}
     done
   done
 done

@@ -5,9 +5,9 @@
 #SBATCH --ntasks 1
 #SBATCH --cpus-per-task 1
 #SBATCH --mem-per-cpu 20000
-#SBATCH --partition private-sip-gpu
+#SBATCH --partition shared-gpu
 #SBATCH --gpus=ampere:1
-#SBATCH --time 2-00:00:00
+#SBATCH --time 11:59:59
 
 # Loading required modules
 module load GCC/10.2.0 CUDA/11.3.1
@@ -24,4 +24,5 @@ module load Python/3.8.6
 # pip install -r ~/cdp_unsupervised_ad/requirements.txt
 
 # Running Main Program
-srun ${HOME}/cdp_unsupervised_ad/scripts/run_main.sh
+# srun ${HOME}/cdp_unsupervised_ad/scripts/run_wifs.sh
+echo srun python3 -u "${HOME}"/cdp_unsupervised_ad/src/main.py "$1"
