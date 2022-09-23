@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 
-def show_cdps(cdps, titles, crop_size=None):
+def show_cdps(cdps, titles, crop_size=None, vmin=0, vmax=1):
     """Shows CPDs in one line with the given titles for each CDP"""
     n = len(cdps)
     fig = plt.figure(figsize=(9, 13))
@@ -21,7 +21,7 @@ def show_cdps(cdps, titles, crop_size=None):
             cdp = cdp[h_min:h_max, w_min:w_max]
 
         sub_plot = fig.add_subplot(1, n, i + 1)
-        sub_plot.imshow(cdp, cmap="gray")
+        sub_plot.imshow(cdp, cmap="gray", vmin=vmin, vmax=vmax)
         sub_plot.set_title(title)
 
     plt.show()
