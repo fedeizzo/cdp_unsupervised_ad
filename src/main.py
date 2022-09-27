@@ -83,7 +83,6 @@ def main():
     mode = args[MODE]
     n_epochs = args[EPOCHS]
     result_dir = args[RESULT_DIR]
-    originals = args[ORIGINALS]
     lr = args[LR]
     bs = args[BS]
     tp = args[TP]
@@ -95,25 +94,25 @@ def main():
     # Setting reproducibility
     set_reproducibility(seed)
 
+    # Creating result directory
+    create_dir(result_dir)
+
     # Getting program device
     device = get_device()
 
     # Loading data
-    train_loader, val_loader, test_loader, _ = load_cdp_data(args, tp, vp, bs, originals=originals)
+    train_loader, val_loader, test_loader, _ = load_cdp_data(args, tp, vp, bs)
 
     # Training new model(s) is result directory does not exist
     if not no_train:
         print(f"Training new models.")
-
-        # Creating result directory
-        create_dir(result_dir)
 
         # Training loop
         train(mode, train_loader, val_loader, lr, device, n_epochs, result_dir)
 
     # Testing loop
     print(f"\n\nTesting trained model(s)")
-    test(mode, test_loader, device, f"Originals {originals} and fakes ({mode.name})", result_dir)
+    test(mode, test_loader, device, f"Results with mode ({mode})", result_dir)
 
     # Notifying program has finished
     print(f"\nProgram completed successfully. Results are available at {result_dir}")

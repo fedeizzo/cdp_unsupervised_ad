@@ -1,6 +1,4 @@
 import torch.nn as nn
-from utils.utils import Mode
-
 
 class ResidualBlock(nn.Module):
     """
@@ -23,7 +21,7 @@ class ResidualBlock(nn.Module):
 
 
 def _get_bottleneck_model(mode, conv_dim, repeat_num):
-    out_channels = 1 if mode in [Mode.MODE_T2X, Mode.MODE_X2T, Mode.MODE_BOTH] else 2
+    out_channels = 1 if mode in ["t2x", "x2t", "both"] else 2
 
     layers = [nn.Conv2d(1, conv_dim, kernel_size=7, stride=1, padding=3, bias=False),
               nn.InstanceNorm2d(conv_dim, affine=True, track_running_stats=True), nn.ReLU(inplace=True)]
@@ -55,15 +53,15 @@ def _get_bottleneck_model(mode, conv_dim, repeat_num):
 
 def get_models(mode, hidden_channels=10, n_res_bottleneck_blocks=1, device=None):
     """Creates a list of simple models based on the mode."""
-    if mode == Mode.MODE_BOTH:
+    if mode == "both":
         return [
-            _get_bottleneck_model(Mode.MODE_T2X, hidden_channels, n_res_bottleneck_blocks).to(device),
-            _get_bottleneck_model(Mode.MODE_X2T, hidden_channels, n_res_bottleneck_blocks).to(device)
+            _get_bottleneck_model("t2x", hidden_channels, n_res_bottleneck_blocks).to(device),
+            _get_bottleneck_model("x2t", hidden_channels, n_res_bottleneck_blocks).to(device)
         ]
-    elif mode == Mode.MODE_BOTH_A:
+    elif mode == "both_a":
         return [
-            _get_bottleneck_model(Mode.MODE_T2XA, hidden_channels, n_res_bottleneck_blocks).to(device),
-            _get_bottleneck_model(Mode.MODE_X2TA, hidden_channels, n_res_bottleneck_blocks).to(device)
+            _get_bottleneck_model("t2xa", hidden_channels, n_res_bottleneck_blocks).to(device),
+            _get_bottleneck_model("x2ta", hidden_channels, n_res_bottleneck_blocks).to(device)
         ]
 
     return [_get_bottleneck_model(mode, hidden_channels, n_res_bottleneck_blocks).to(device)]

@@ -18,22 +18,13 @@ def load_cdp_data(args,
                   test_post_transform=None,
                   return_diff=False,
                   return_stack=False,
-                  load=True,
-                  originals="55"
+                  load=True
                   ):
     """Loads CDP data from the given directory, splitting according to the percentages and applying the transforms.
     Only loads the particular type of original selected. Returns the 3 data loaders and the number of fake codes."""
-    data_dir = args["data_dir"]
-    if data_dir:
-        t_dir = os.path.join(data_dir, 'templates')
-        x_dirs = [os.path.join(data_dir, f'{originals}')]
-        f_dirs = [
-            os.path.join(data_dir, 'fake_phone'),
-        ]
-    else:
-        t_dir = args["t_dir"]
-        x_dirs = args["x_dirs"]
-        f_dirs = args["f_dirs"]
+    t_dir = args["t_dir"]
+    x_dirs = args["x_dirs"]
+    f_dirs = args["f_dirs"]
 
     n_fakes = len(f_dirs)
     train_set, val_set, test_set = get_split(t_dir,

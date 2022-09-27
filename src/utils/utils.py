@@ -31,15 +31,7 @@ FAKE_NUMBERS = ("55/55", "55/76", "76/55", "76/76")
 
 
 # Modes
-class Mode(Enum):
-    """Enum with all possible modalities for program execution"""
-    MODE_T2X = 't2x'
-    MODE_T2XA = 't2xa'
-    MODE_X2T = 'x2t'
-    MODE_X2TA = 'x2ta'
-    MODE_BOTH = 'both'
-    MODE_BOTH_A = 'both_a'
-
+MODES = ["t2x", "t2xa", "x2t", "x2ta", "both", "both_a"]
 
 def set_reproducibility(seed):
     """Sets the reproducibility of the experiments with the given seed."""
@@ -56,7 +48,7 @@ def parse_args():
     parser.add_argument(f"--{CONF}", type=str, help="Path to the file containing the configuration")
     parser.add_argument(f"--{DATA_DIR}", type=str, help="Data root directory path")
     parser.add_argument(f"--{EPOCHS}", type=int, help="Number of epochs", default=100)
-    parser.add_argument(f"--{MODE}", type=Mode, choices=list(Mode), help="Kind of model used", default=list(Mode)[0])
+    parser.add_argument(f"--{MODE}", type=str, choices=MODES, help="Kind of model used", default=MODES[0])
     parser.add_argument(f"--{ORIGINALS}", choices=AVAILABLE_ORIGINALS, help="Originals to be used for training",
                         default=AVAILABLE_ORIGINALS[0])
     parser.add_argument(f"--{BS}", type=int, help="Batch size", default=16)

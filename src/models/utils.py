@@ -1,20 +1,18 @@
 import os
 import torch
 
-from utils.utils import Mode
-
 DEFAULT_T2X_MODEL_PATH = "t2x.pt"
 DEFAULT_T2XA_MODEL_PATH = "t2xa.pt"
 DEFAULT_X2T_MODEL_PATH = "x2t.pt"
 DEFAULT_X2TA_MODEL_PATH = "x2ta.pt"
 
 MODE_TO_PATHS = {
-    Mode.MODE_T2X: [DEFAULT_T2X_MODEL_PATH],
-    Mode.MODE_T2XA: [DEFAULT_T2XA_MODEL_PATH],
-    Mode.MODE_X2T: [DEFAULT_X2T_MODEL_PATH],
-    Mode.MODE_X2TA: [DEFAULT_X2TA_MODEL_PATH],
-    Mode.MODE_BOTH: [DEFAULT_T2X_MODEL_PATH, DEFAULT_X2T_MODEL_PATH],
-    Mode.MODE_BOTH_A: [DEFAULT_T2XA_MODEL_PATH, DEFAULT_X2TA_MODEL_PATH]
+    "t2x": [DEFAULT_T2X_MODEL_PATH],
+    "t2xa": [DEFAULT_T2XA_MODEL_PATH],
+    "x2t": [DEFAULT_X2T_MODEL_PATH],
+    "x2ta": [DEFAULT_X2TA_MODEL_PATH],
+    "both": [DEFAULT_T2X_MODEL_PATH, DEFAULT_X2T_MODEL_PATH],
+    "both_a": [DEFAULT_T2XA_MODEL_PATH, DEFAULT_X2TA_MODEL_PATH]
 }
 
 
@@ -27,28 +25,28 @@ def normalize(tensor):
 
 def forward(mode, models, t, x):
     """Method which returns the loss for the given mode using the given models, templates and originals"""
-    if mode == Mode.MODE_T2X:
+    if mode == "t2x":
         x_hat = models[0](t)
         return torch.mean((x_hat - x) ** 2), x_hat
-    elif mode == Mode.MODE_T2XA:
+    elif mode == "t2xa":
         x_hat, c = models[0](t).chunk(2, 1)
         diff = (x - x_hat)
         return torch.mean(diff ** 2) + torch.mean((normalize(1 - torch.abs(diff)) - c) ** 2), x_hat, c
-    elif mode == Mode.MODE_X2T:
+    elif mode == "x2t":
         t_hat = models[0](x)
         return torch.mean((t_hat - t) ** 2), t_hat
-    elif mode == Mode.MODE_X2TA:
+    elif mode == "x2ta":
         t_hat, c = models[0](x).chunk(2, 1)
         diff = (t - t_hat)
         return torch.mean(diff ** 2) + torch.mean((normalize(1 - torch.abs(diff)) - c) ** 2), t_hat, c
-    elif mode == Mode.MODE_BOTH:
+    elif mode == "both":
         t2x_model, x2t_model = models[0], models[1]
         x_hat = t2x_model(t)
         t_hat = x2t_model(x)
 
         l_standard = (torch.mean((x_hat - x) ** 2) + torch.mean((t_hat - t) ** 2)) / 2
         return l_standard, x_hat, t_hat
-    elif mode == Mode.MODE_BOTH_A:
+    elif mode == "both_a":
         t2xa_model, x2ta_model = models[0], models[1]
         x_hat, cx = t2xa_model(t).chunk(2, 1)
         t_hat, ct = x2ta_model(x).chunk(2, 1)
