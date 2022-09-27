@@ -9,24 +9,25 @@ The code is meant to be run on Python 3.8. Code dependencies are specified in th
 ## Usage
 A model can be trained or tested using the following command:
 
-`python main.py --mode {mode} --data {data_path} --originals {o} --epochs {e} --bs {bs} --lr {lr} --tp {tp} --vp {vp} --seed {seed} --result_dir {r_dir}`
+`python main.py --conf {conf_file.json}`
 
-Where:
- - `mode` is the modality used (1-6). Read the [modalities](#modalities) section closely.
- - `data_path`is the string path to the CDPs folder
- - `o` is the set of originals codes used for training (either "55" or "76")
- - `e` is the number of training epochs
- - `bs` is the batch size
- - `lr` is the learning rate
- - `tp` is the percentage of data used for training
- - `vp` is the percentage of data used for validation
- - `seed` is the randomizing seed for the experiment
- - `r_dir` is the directory where all results (models, auc scores, ...) will be stored
+Where `conf_file.json` is a configuration file containing all program arguments:
 
-Optionally:
- - `--no_train` to just test already existing models
+ - `mode` - Modality to use. Checkout different modalities in the [modalities section](#modalities)
+ - `t_dir` - Path to the directory containing templates.
+ - `x_dirs` - List of paths to the directories containing **original** printed codes.
+ - `f_dirs` - List of directories containing **fake** printed codes (used for testing only).
+ -  `result_dir` - Directory where all results and trained models will be stored.
+ -  `no_train` - Boolean which tells whether to skip train (true) or not (false).
+ - `epochs` - Number of epochs used for training.
+ -  `lr` - Learning rate for training.
+ -  `bs` - Batch size used for training.
+ -  `tp` - Percentage of codes used for training.
+ -  `vp` - Percentage of codes used for validation. Note that the percentage of testing images is `1 - (tp+vp)`.
+ -  `seed` - Random seed for the experiment.
 
 ### Modalities
+
 There are currently 6 possible modalities:
  - **t2x** The model is trained to produce a printed CDP given the template (```t2x```).
  - **t2xa** The model is trained to produce a printed CDP and a confidence map given the template (```t2xa```).
