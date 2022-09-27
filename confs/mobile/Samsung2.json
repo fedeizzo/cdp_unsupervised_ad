@@ -1,7 +1,7 @@
 {
   "mode": "t2x",
   "epochs": 300,
-  "t_dir": ["/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/orig_template"],
+  "t_dir": "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/orig_template",
   "x_dirs": ["/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/orig_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG/SamsungGN20U_run2_ss100_focal12_apperture1"],
   "f_dirs": [
     "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/iPhone12Pro_run1_ss100_focal12_apperture1",
@@ -10,7 +10,9 @@
     "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/SamsungGN20U_run2_ss100_focal12_apperture1"
   ],
   "result_dir": "/home/users/p/pulfer/cdp_unsupervised_ad/results/wifs/samsung2",
+  "no_train": false,
   "lr": 0.01,
+  "bs": 32,
   "tp": 0.6,
   "vp": 0.1,
   "seed": 0
