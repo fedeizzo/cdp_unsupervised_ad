@@ -22,12 +22,9 @@ TP = "tp"
 VP = "vp"
 NO_TRAIN = "no_train"
 RESULT_DIR = "result_dir"
+ORIG_NAMES = "orig_names"
+FAKE_NAMES = "fake_names"
 SEED = "seed"
-
-# Originals and Fakes
-AVAILABLE_ORIGINALS = ("55", "76")
-FAKE_NAMES = ("Fakes 55/55", "Fakes 55/76", "Fakes 76/55", "Fakes 76/76")
-FAKE_NUMBERS = ("55/55", "55/76", "76/55", "76/76")
 
 
 # Modes
@@ -46,18 +43,6 @@ def parse_args():
     """Parses program arguments and returns a dictionary adressable with the above-defined macros"""
     parser = ArgumentParser()
     parser.add_argument(f"--{CONF}", type=str, help="Path to the file containing the configuration")
-    parser.add_argument(f"--{DATA_DIR}", type=str, help="Data root directory path")
-    parser.add_argument(f"--{EPOCHS}", type=int, help="Number of epochs", default=100)
-    parser.add_argument(f"--{MODE}", type=str, choices=MODES, help="Kind of model used", default=MODES[0])
-    parser.add_argument(f"--{ORIGINALS}", choices=AVAILABLE_ORIGINALS, help="Originals to be used for training",
-                        default=AVAILABLE_ORIGINALS[0])
-    parser.add_argument(f"--{BS}", type=int, help="Batch size", default=16)
-    parser.add_argument(f"--{LR}", type=float, help="Learning rate", default=0.001)
-    parser.add_argument(f"--{TP}", type=float, help="Training data percentage", default=0.4)
-    parser.add_argument(f"--{VP}", type=float, help="Validation data percentage", default=0.1)
-    parser.add_argument(f"--{NO_TRAIN}", action="store_true", help="Whether to train a new model")
-    parser.add_argument(f"--{RESULT_DIR}", type=str, help="Path where all results will be stored", default="./results")
-    parser.add_argument(f"--{SEED}", type=int, help="Randomizing seed", default=0)
 
     args = vars(parser.parse_args())
 
@@ -65,6 +50,9 @@ def parse_args():
         f = open(args[CONF], "r")
         args = json.load(f)
         f.close()
+    else:
+        print("ERROR: Program takes --conf as argument.")
+        exit()
 
     return args
 
@@ -104,17 +92,36 @@ def store_scores(o_scores, f_scores, dest):
 
 
 def store_hist_picture(o_scores, f_scores, dest,
-                       title="Anomaly scores", pic_name="anomaly_scores.png", fakes_names=FAKE_NAMES, alpha=0.5):
+                       title="Anomaly scores", orig_names=None, fakes_names=None, pic_name="anomaly_scores.png", alpha=0.5):
     """Computes and stores the histogram for the original and fakes, based on their scores"""
-    o_scores, f_scores = np.array(o_scores), np.array(f_scores)
-    n_bins = len(o_scores) // 4
-    plt.hist(o_scores, bins=n_bins, alpha=alpha, label="Originals")
-    auc_roc_scores = []
-    for f_name, f_score in zip(fakes_names, f_scores):
-        plt.hist(f_score, bins=n_bins, alpha=alpha, label=f_name)
-        auc_roc_scores.append(get_roc_auc_score(o_scores, f_score))
+    if orig_names is None:
+        orig_names = [f"Originals {i+1}" for i in range(len(o_scores))]
 
-    np.save(os.path.join(dest, "auc_scores.npy"), np.array(auc_roc_scores))
+    if fakes_names is None:
+        fakes_names = [f"Fakes {i+1}" for i in range(len(o_scores))]
+
+
+    o_scores, f_scores = np.array(o_scores), np.array(f_scores)
+    n_bins = len(o_scores[0]) // 4
+
+
+    for o_s, name in zip(o_scores, orig_names):
+        plt.hist(o_s, bins=n_bins, alpha=alpha, label=name)
+
+    for f_s, name in zip(f_scores, fakes_names):
+        plt.hist(f_s, bins=n_bins, alpha=alpha, label=name)
+
+
+    auc_roc_scores = {}
+    for o_name, o_score in zip(orig_names, o_scores):
+        auc_roc_scores[o_name] = {}
+        for f_name, f_score in zip(fakes_names, f_scores):
+            auc_roc_scores[o_name][f_name] = get_roc_auc_score(o_score, f_score)
+
+    auc_roc_scores = json.dumps(auc_roc_scores, indent=4)
+    with open(os.path.join(dest, "auc_scores.json"), "w") as file:
+        file.write(auc_roc_scores)
+        file.close()
 
     plt.legend()
     plt.xlabel("Anomaly score")

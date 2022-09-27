@@ -52,29 +52,31 @@ def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
         print(epoch_str)
 
 
-def test(mode, test_loader, device, title=None, result_dir="./"):
+def test(mode, test_loader, device, title=None, result_dir="./", o_names=None, f_names=None):
     """Testing loop which """
     models = load_models(mode, result_dir, device)
 
     for model in models:
         model.eval()
 
-    o_scores = []
-    f_scores = [[] for _ in range(4)]
+    o_scores = [[] for _ in range(len(test_loader.dataset.x_dirs))]
+    f_scores = [[] for _ in range(len(test_loader.dataset.f_dirs))]
 
     with torch.no_grad():
         for batch in test_loader:
             t = batch["template"].to(device)
             x = batch["originals"][0].to(device)
 
-            o_scores.extend(get_anomaly_score(mode, models, t, x))
+            for idx, x in enumerate(batch["originals"]):
+                x = x.to(device)
+                o_scores[idx].extend(get_anomaly_score(mode, models, t, x))
 
             for idx, f in enumerate(batch["fakes"]):
                 f = f.to(device)
                 f_scores[idx].extend(get_anomaly_score(mode, models, t, f))
 
         store_scores(o_scores, f_scores, result_dir)
-        store_hist_picture(o_scores, f_scores, result_dir, title)
+        store_hist_picture(o_scores, f_scores, result_dir, title, o_names, f_names)
 
 
 def main():
@@ -89,6 +91,8 @@ def main():
     vp = args[VP]
     no_train = args[NO_TRAIN]
     seed = args[SEED]
+    o_names = args[ORIG_NAMES]
+    f_names = args[FAKE_NAMES]
     print(args)
 
     # Setting reproducibility
@@ -112,7 +116,7 @@ def main():
 
     # Testing loop
     print(f"\n\nTesting trained model(s)")
-    test(mode, test_loader, device, f"Results with mode ({mode})", result_dir)
+    test(mode, test_loader, device, f"Results with mode ({mode})", result_dir, o_names, f_names)
 
     # Notifying program has finished
     print(f"\nProgram completed successfully. Results are available at {result_dir}")

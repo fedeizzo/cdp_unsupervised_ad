@@ -9,6 +9,13 @@
     "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/SamsungGN20U_run1_ss100_focal12_apperture1",
     "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/SamsungGN20U_run2_ss100_focal12_apperture1"
   ],
+  "orig_names": ["Original iPhone (1)"],
+  "fake_names": [
+    "Fake iPhone (1)",
+    "Fake iPhone (2)",
+    "Fake Samsung (1)",
+    "Fake Samsung (2)"
+  ],
   "result_dir": "/home/users/p/pulfer/cdp_unsupervised_ad/results/mobile/iphone1/seed_0",
   "no_train": false,
   "lr": 0.01,
