@@ -182,7 +182,7 @@ class CDPDataset(Dataset):
 
     def _load(self, d, fn):
         img = cv2.imread(os.path.join(d, fn), cv2.IMREAD_GRAYSCALE).astype(np.float32)
-        img = np.expand_dims(img, 0)
+        img = np.expand_dims(img, 2)
         return img
 
 
