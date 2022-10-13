@@ -168,17 +168,22 @@ class CDPDataset(Dataset):
         Also, applies the deterministic pre_transform, if specified, to all the images.
         """
         file_name = self.file_names[idx]
-        images = [cv2.imread(os.path.join(self.t_dir, file_name), -1).astype(np.float32)]
+        images = [self._load(self.t_dir, file_name)]
         for x_dir in self.x_dirs:
-            images.append(cv2.imread(os.path.join(x_dir, file_name), -1).astype(np.float32))
+            images.append(self._load(x_dir, file_name))
 
         for f_dir in self.f_dirs:
-            images.append(cv2.imread(os.path.join(f_dir, file_name), -1).astype(np.float32))
+            images.append(self._load(f_dir, file_name))
 
         if self.pre_transform:
             images = self.pre_transform(*images)
 
         return images
+
+    def _load(self, d, fn):
+        img = cv2.imread(os.path.join(d, fn), cv2.IMREAD_GRAYSCALE).astype(np.float32)
+        img = np.expand_dims(img, 0)
+        return img
 
 
 class CDPSourceLoader(DataLoader):

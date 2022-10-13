@@ -37,11 +37,8 @@ class NormalizeAll:
     def __call__(self, *args):
         result = []
         for arg in args:
-            arg = arg - torch.min(arg)
-            arg = arg / torch.max(arg)
-
-            assert torch.min(arg) >= 0 and torch.max(arg) <= 1
-            result.append(arg)
+            mu, sigma = torch.mean(arg), torch.std(arg)
+            result.append((arg - mu) / sigma)
         return result
 
 
