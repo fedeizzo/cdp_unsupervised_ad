@@ -2,12 +2,12 @@
   "mode": "t2x",
   "epochs": 300,
   "t_dir": "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/orig_template",
-  "x_dirs": ["/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/orig_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG/iPhone12Pro_run2_ss100_focal12_apperture1"],
+  "x_dirs": ["/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/orig_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG/iPhone12Pro_run2_ss100_focal12_apperture1/rcod_hist"],
   "f_dirs": [
-    "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/iPhone12Pro_run1_ss100_focal12_apperture1",
-    "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/iPhone12Pro_run2_ss100_focal12_apperture1",
-    "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/SamsungGN20U_run1_ss100_focal12_apperture1",
-    "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/SamsungGN20U_run2_ss100_focal12_apperture1"
+    "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/iPhone12Pro_run1_ss100_focal12_apperture1/rcod_hist",
+    "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/iPhone12Pro_run2_ss100_focal12_apperture1/rcod_hist",
+    "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/SamsungGN20U_run1_ss100_focal12_apperture1/rcod_hist",
+    "/home/users/p/pulfer/cdp_unsupervised_ad/datasets/mobile/fake_phone/HPI55_printdpi812.8_printrun1_session1_InvercoteG_EHPI55/SamsungGN20U_run2_ss100_focal12_apperture1/rcod_hist"
   ],
   "orig_names": ["Original iPhone (2)"],
   "fake_names": [
