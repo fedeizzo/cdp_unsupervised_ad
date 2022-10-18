@@ -7,4 +7,4 @@
 *.npy
 .DS_Store
 .idea
-.png
+*.png
