@@ -41,7 +41,7 @@ class NormalizeAll:
             # arg = (arg - mu) / sigma
             arg -= arg.min()
             arg /= arg.max()
-            result.append((arg))
+            result.append(arg)
         return result
 
 
