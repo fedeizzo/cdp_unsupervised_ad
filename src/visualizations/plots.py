@@ -41,7 +41,7 @@ def ssim(t, y):
     return structural_similarity(t.numpy().squeeze(), y.numpy().squeeze())
 
 
-def plot_hist_and_roc(fns, fn_names, dataset, o_names, f_names):
+def plot_hist_and_roc(fns, fn_names, dataset, o_names, f_names, roc_type="default"):
     metrics = {}
     for fn, fn_name in zip(fns, fn_names):
         o_scores = [[] for _ in range(len(dataset.x_dirs))]
@@ -89,11 +89,25 @@ def plot_hist_and_roc(fns, fn_names, dataset, o_names, f_names):
                 fpr, tpr, t = roc_curve(-(np.array(y_true) - 1), y_score)
                 area = auc(fpr, tpr)
 
-            plt.plot(fpr, tpr, label=f"{metric} (area = {area:.2f})")
-        plt.plot([0, 1], [0, 1], linestyle="--")
+            if roc_type == "flipped":
+                plt.xlim((0, max(t)))
+                plt.plot(t, fpr, label=f"Pmiss ({metric})")
+                plt.plot(t, 1 - np.array(tpr), label=f"Pfa ({metric})")
+                plt.xlabel("Threshold value")
+            elif roc_type == "Pe":
+                plt.xlim((0, max(t)))
+                n = len(f_names)
+                pf_w, pm_w = (n-1) / n, 1/n
+                plt.plot(t, pf_w * fpr + pm_w * (1 - tpr), label=f"Pe ({metric})")
+                plt.xlabel("Threshold value")
+            else:
+                # Default ROC curve
+                plt.xlim((0, 1))
+                plt.plot(fpr, tpr, label=f"{metric} (area = {area:.2f})")
+                plt.plot([0, 1], [0, 1], linestyle="--")
         plt.title(f"Originals {o_name} and fakes", fontdict={"size": 18, "weight": "bold"})
         plt.legend()
-        plt.savefig(f"{o_name} ({fn_names})")
+        plt.savefig(f"{o_name} ({fn_names}) - ROC {roc_type}")
         plt.show()
 
 
@@ -116,7 +130,7 @@ def main():
     print(f"Dataset loaded. Found {len(dataset)} shared CDP across all directories.")
 
     # Plots
-    plot_hist_and_roc([mse, pcorr, ssim], ["MSE", "PCorr", "SSIM"], dataset, o_names, f_names)
+    plot_hist_and_roc([mse, pcorr, ssim], ["MSE", "PCorr", "SSIM"], dataset, o_names, f_names, roc_type="flipped")
 
 
 if __name__ == "__main__":
