@@ -1,3 +1,17 @@
+# EMACS
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# NIX
+.direnv
+result
+
 /datasets
 /results
 /dev_scripts
@@ -8,3 +22,5 @@
 .DS_Store
 .idea
 *.png
+
+data

@@ -1,6 +1,7 @@
 numpy
-sklearn
+scikit-learn
 matplotlib
 opencv-python
 torch
 torchvision
+setuptools
