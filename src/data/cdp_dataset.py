@@ -11,23 +11,25 @@ from torch.utils.data import Dataset, DataLoader
 from data.transforms import AllRandomTransforms, NormalizedTensorTransform
 
 
-def get_split(t_dir,
-              x_dirs,
-              f_dirs,
-              train_percent=0.4,
-              val_percent=0.1,
-              train_pre_transform=NormalizedTensorTransform(),
-              train_post_transform=AllRandomTransforms(),
-              val_pre_transform=NormalizedTensorTransform(),
-              val_post_transform=None,
-              test_pre_transform=NormalizedTensorTransform(),
-              test_post_transform=None,
-              bad_indexes=None,
-              return_diff=False,
-              return_stack=False,
-              multi_gpu=False,
-              load=True
-              ):
+def get_split(
+    t_dir,
+    x_dirs,
+    f_dirs,
+    train_percent=0.4,
+    val_percent=0.1,
+    train_pre_transform=NormalizedTensorTransform(),
+    train_post_transform=AllRandomTransforms(),
+    val_pre_transform=NormalizedTensorTransform(),
+    val_post_transform=None,
+    test_pre_transform=NormalizedTensorTransform(),
+    test_post_transform=None,
+    bad_indexes=None,
+    return_diff=False,
+    return_stack=False,
+    multi_gpu=False,
+    load=True,
+    is_mobile_dataset=False,
+):
     """
     Loads the CDP Dataset, composed of triplets of templates, originals and fakes (t,x,f).
     Randomly splits the dataset according to the training data percentage provided.
@@ -56,54 +58,69 @@ def get_split(t_dir,
         return_diff=return_diff,
         return_stack=return_stack,
         multi_gpu=multi_gpu,
-        load=load
+        load=load,
+        is_mobile_dataset=is_mobile_dataset,
     )
 
     val_set = CDPDataset(
         t_dir=t_dir,
         x_dirs=x_dirs,
         f_dirs=f_dirs,
-        indices=all_indices[n_train:n_train + n_val],
+        indices=all_indices[n_train : n_train + n_val],
         pre_transform=val_pre_transform,
         post_transform=val_post_transform,
         return_diff=return_diff,
         return_stack=return_stack,
         multi_gpu=multi_gpu,
-        load=load
+        load=load,
+        is_mobile_dataset=is_mobile_dataset,
     )
 
     test_set = CDPDataset(
         t_dir=t_dir,
         x_dirs=x_dirs,
         f_dirs=f_dirs,
-        indices=all_indices[n_train + n_val:],
+        indices=all_indices[n_train + n_val :],
         pre_transform=test_pre_transform,
         post_transform=test_post_transform,
         return_diff=return_diff,
         return_stack=return_stack,
         multi_gpu=multi_gpu,
-        load=load
+        load=load,
+        is_mobile_dataset=is_mobile_dataset,
     )
 
     return train_set, val_set, test_set
 
 
 class CDPDataset(Dataset):
-    def __init__(self, t_dir, x_dirs, f_dirs, indices=None, pre_transform=NormalizedTensorTransform(),
-                 post_transform=None,
-                 return_diff=False, return_stack=False, multi_gpu=False, load=True):
+    def __init__(
+        self,
+        t_dir,
+        x_dirs,
+        f_dirs,
+        indices=None,
+        pre_transform=NormalizedTensorTransform(),
+        post_transform=None,
+        return_diff=False,
+        return_stack=False,
+        multi_gpu=False,
+        load=True,
+        is_mobile_dataset=False,
+    ):
         """
-            Copy Detection Pattern (CDP) dataset. Data is loaded in triplets of templates, originals and fakes (t, x, f).
+        Copy Detection Pattern (CDP) dataset. Data is loaded in triplets of templates, originals and fakes (t, x, f).
 
-            :param t_dir: Directory containing images of the digital templates
-            :param x_dirs: Directories containing images of the originals
-            :param f_dirs: Directories containing images of the counterfeits
-            :param indices: List of img numbers to be taken (e.g. [1, 7, 8, 13, ...])
-            :param pre_transform: Transform to be applied to all images when loaded
-            :param post_transform: Transform to be applied just-in-time when an item is retrieved (stochastic)
-            :param return_diff: Whether to return (t, x, f) or the differences w.r.t template t -> (t-t, x-t, f-t)
-            :param return_stack: Whether to a stacked version with template t -> [[t,t], [t,x], [t,f]]
-            :param multi_gpu: If true, some samples are going to be discarded such that DS is divisible by #GPUs
+        :param t_dir: Directory containing images of the digital templates
+        :param x_dirs: Directories containing images of the originals
+        :param f_dirs: Directories containing images of the counterfeits
+        :param indices: List of img numbers to be taken (e.g. [1, 7, 8, 13, ...])
+        :param pre_transform: Transform to be applied to all images when loaded
+        :param post_transform: Transform to be applied just-in-time when an item is retrieved (stochastic)
+        :param return_diff: Whether to return (t, x, f) or the differences w.r.t template t -> (t-t, x-t, f-t)
+        :param return_stack: Whether to a stacked version with template t -> [[t,t], [t,x], [t,f]]
+        :param multi_gpu: If true, some samples are going to be discarded such that DS is divisible by #GPUs
+        :param is_mobile_dataset: If True, crop the image to fit the net weights trained with Indigo1x1 (this option was added to allow the test with indigo mobile)
         """
         super(CDPDataset, self).__init__()
 
@@ -118,12 +135,16 @@ class CDPDataset(Dataset):
         self.return_stack = return_stack
         self.multi_gpu = multi_gpu
         self.all_loaded = load
+        self.is_mobile_dataset = is_mobile_dataset
 
         # Keeping only file names that exist in all folders
         self.file_names = []
         all_dirs = [t_dir, *x_dirs, *f_dirs]
         for fn in os.listdir(t_dir):
-            if np.all([os.path.isfile(os.path.join(d, fn)) for d in all_dirs]) and int(fn.split(".")[0]) in self.indices:
+            if (
+                np.all([os.path.isfile(os.path.join(d, fn)) for d in all_dirs])
+                and int(fn.split(".")[0]) in self.indices
+            ):
                 self.file_names.append(fn)
 
         if load:
@@ -135,7 +156,7 @@ class CDPDataset(Dataset):
     def __getitem__(self, item):
         """Returns the template image, followed by the several originals and fakes images.
         The original and fakes images come, in order, from the x_dirs and f_dirs used to initialize this CDPDataset
-         """
+        """
         if self.all_loaded:
             images = self.all_images[item]
         else:
@@ -151,15 +172,17 @@ class CDPDataset(Dataset):
 
         f_idx = 1 + len(self.x_dirs)
         return {
-            'template': images[0],
-            'originals': images[1:f_idx],
-            'fakes': images[f_idx:]
+            "template": images[0],
+            "originals": images[1:f_idx],
+            "fakes": images[f_idx:],
         }
 
     def __len__(self):
         if self.multi_gpu and torch.cuda.device_count() > 0:
             # Avoiding to have GPUs without samples in the batch (causes errors)
-            return len(self.file_names) - (len(self.file_names) % torch.cuda.device_count())
+            return len(self.file_names) - (
+                len(self.file_names) % torch.cuda.device_count()
+            )
         return len(self.file_names)
 
     def _idx_to_images(self, idx):
@@ -182,6 +205,8 @@ class CDPDataset(Dataset):
 
     def _load(self, d, fn):
         img = cv2.imread(os.path.join(d, fn), cv2.IMREAD_GRAYSCALE).astype(np.float32)
+        if self.is_mobile_dataset:
+            img = img[1:-1, 1:-1]
         img = np.expand_dims(img, 2)
         return img
 
@@ -202,9 +227,13 @@ class CDPSourceLoader(DataLoader):
             self.idx = 0
             raise StopIteration
 
-        x = torch.stack([self.dataset[idx][self.key][self.source]
-                         for idx in np.arange(self.idx, self.idx + self.batch_size)
-                         if idx < len(self.dataset)])
+        x = torch.stack(
+            [
+                self.dataset[idx][self.key][self.source]
+                for idx in np.arange(self.idx, self.idx + self.batch_size)
+                if idx < len(self.dataset)
+            ]
+        )
         x = x.to(self.device)
 
         self.idx += self.batch_size
@@ -218,16 +247,13 @@ def main():
     """Study the dataset in terms of pearson correlation in the input space."""
     import matplotlib.pyplot as plt
 
-    t_dir = './../../datasets/1x1/templates'
-    x_dirs = [
-        './../../datasets/1x1/originals_55',
-        './../../datasets/1x1/originals_76'
-    ]
+    t_dir = "./../../datasets/1x1/templates"
+    x_dirs = ["./../../datasets/1x1/originals_55", "./../../datasets/1x1/originals_76"]
     f_dirs = [
-        './../../datasets/1x1/fakes_55_55',
-        './../../datasets/1x1/fakes_55_76',
-        './../../datasets/1x1/fakes_76_55',
-        './../../datasets/1x1/fakes_76_76'
+        "./../../datasets/1x1/fakes_55_55",
+        "./../../datasets/1x1/fakes_55_76",
+        "./../../datasets/1x1/fakes_76_55",
+        "./../../datasets/1x1/fakes_76_76",
     ]
 
     ds = CDPDataset(
@@ -236,7 +262,7 @@ def main():
         f_dirs,
         np.arange(0, 720),
         pre_transform=NormalizedTensorTransform(),
-        load=False
+        load=False,
     )
 
     def std(image):
@@ -255,14 +281,20 @@ def main():
     all_x55, all_x76 = [], []
     all_f55_55, all_f55_76, all_f76_55, all_f76_76 = [], [], [], []
     features = {
-        'x55': all_x55, 'x76': all_x76,
-        'f55_55': all_f55_55, 'f55_76': all_f55_76, 'f76_55': all_f76_55, 'f76_76': all_f76_76
+        "x55": all_x55,
+        "x76": all_x76,
+        "f55_55": all_f55_55,
+        "f55_76": all_f55_76,
+        "f76_55": all_f76_55,
+        "f76_76": all_f76_76,
     }
     for element in ds:
-        x55, x76 = element['originals']
-        f55_55, f55_76, f76_55, f76_76 = element['fakes']
+        x55, x76 = element["originals"]
+        f55_55, f55_76, f76_55, f76_76 = element["fakes"]
 
-        for name, img in zip(features.keys(), [x55, x76, f55_55, f55_76, f76_55, f76_76]):
+        for name, img in zip(
+            features.keys(), [x55, x76, f55_55, f55_76, f76_55, f76_76]
+        ):
             features[name].append(metric(img))
 
     fig = plt.figure()
@@ -272,17 +304,16 @@ def main():
         ax.plot(np.arange(len(y)), y, label=name)
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
     plt.xlabel("Sample")
     plt.ylabel(metric.__name__)
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # main()
 
     from tqdm import tqdm
-
 
     def insert(dictionary, key, value):
         if key not in dictionary.keys():
@@ -293,22 +324,21 @@ if __name__ == '__main__':
     def l2dist(x, y):
         return torch.sum((x - y) ** 2).sqrt().item()
 
-
-    t_dir = './../../datasets/1x1/templates'
+    t_dir = "./../../datasets/1x1/templates"
     x_dirs = [
-        './../../datasets/1x1/originals_55',
-        './../../datasets/1x1/originals_55_a',
-        './../../datasets/1x1/originals_55_b',
-        './../../datasets/1x1/originals_76',
-        './../../datasets/1x1/originals_76_a',
-        './../../datasets/1x1/originals_76_b',
+        "./../../datasets/1x1/originals_55",
+        "./../../datasets/1x1/originals_55_a",
+        "./../../datasets/1x1/originals_55_b",
+        "./../../datasets/1x1/originals_76",
+        "./../../datasets/1x1/originals_76_a",
+        "./../../datasets/1x1/originals_76_b",
     ]
 
     f_dirs = [
-        './../../datasets/1x1/fakes_55_55',
-        './../../datasets/1x1/fakes_55_76',
-        './../../datasets/1x1/fakes_76_55',
-        './../../datasets/1x1/fakes_76_76'
+        "./../../datasets/1x1/fakes_55_55",
+        "./../../datasets/1x1/fakes_55_76",
+        "./../../datasets/1x1/fakes_76_55",
+        "./../../datasets/1x1/fakes_76_76",
     ]
 
     dataset = CDPDataset(
@@ -331,7 +361,9 @@ if __name__ == '__main__':
         insert(l2_distances, ("o76", "o76_b"), l2dist(o76, o76_b))
 
         for o_name, original in zip(["o55", "o76"], [o55, o76]):
-            for f_name, fake in zip(["f55/55", "f55/76", "f76/55", "f76/76"], sample["fakes"]):
+            for f_name, fake in zip(
+                ["f55/55", "f55/76", "f76/55", "f76/76"], sample["fakes"]
+            ):
                 insert(l2_distances, (o_name, f_name), l2dist(original, fake))
 
     for original in ["o55", "o76"]:

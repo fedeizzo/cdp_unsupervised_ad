@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 import torch
 
 # Arguments keys
-CONF = 'conf'
-DATA_DIR = 'data'
+CONF = "conf"
+DATA_DIR = "data"
 EPOCHS = "epochs"
 MODE = "mode"
 ORIGINALS = "originals"
@@ -24,11 +24,13 @@ NO_TRAIN = "no_train"
 RESULT_DIR = "result_dir"
 ORIG_NAMES = "orig_names"
 FAKE_NAMES = "fake_names"
+IS_MOBILE_DATASET = "is_mobile_dataset"
 SEED = "seed"
 
 
 # Modes
 MODES = ["t2x", "t2xa", "x2t", "x2ta", "both", "both_a"]
+
 
 def set_reproducibility(seed):
     """Sets the reproducibility of the experiments with the given seed."""
@@ -42,7 +44,9 @@ def set_reproducibility(seed):
 def parse_args():
     """Parses program arguments and returns a dictionary adressable with the above-defined macros"""
     parser = ArgumentParser()
-    parser.add_argument(f"--{CONF}", type=str, help="Path to the file containing the configuration")
+    parser.add_argument(
+        f"--{CONF}", type=str, help="Path to the file containing the configuration"
+    )
 
     args = vars(parser.parse_args())
 
@@ -62,7 +66,10 @@ def get_device(verbose=True):
     cuda = torch.cuda.is_available()
     device = torch.device("cuda" if cuda else "cpu")
     if verbose:
-        print(f"Using device: {device}" + (f" ({torch.cuda.get_device_name(device)})" if cuda else ""))
+        print(
+            f"Using device: {device}"
+            + (f" ({torch.cuda.get_device_name(device)})" if cuda else "")
+        )
     return device
 
 
@@ -91,8 +98,16 @@ def store_scores(o_scores, f_scores, dest):
     np.save(os.path.join(dest, "f_scores.npy"), f_scores)
 
 
-def store_hist_picture(o_scores, f_scores, dest,
-                       title="Anomaly scores", orig_names=None, fakes_names=None, pic_name="anomaly_scores.png", alpha=0.5):
+def store_hist_picture(
+    o_scores,
+    f_scores,
+    dest,
+    title="Anomaly scores",
+    orig_names=None,
+    fakes_names=None,
+    pic_name="anomaly_scores.png",
+    alpha=0.5,
+):
     """Computes and stores the histogram for the original and fakes, based on their scores"""
     if orig_names is None:
         orig_names = [f"Originals {i+1}" for i in range(len(o_scores))]
@@ -100,17 +115,14 @@ def store_hist_picture(o_scores, f_scores, dest,
     if fakes_names is None:
         fakes_names = [f"Fakes {i+1}" for i in range(len(o_scores))]
 
-
     o_scores, f_scores = np.array(o_scores), np.array(f_scores)
     n_bins = len(o_scores[0]) // 4
-
 
     for o_s, name in zip(o_scores, orig_names):
         plt.hist(o_s, bins=n_bins, alpha=alpha, label=name)
 
     for f_s, name in zip(f_scores, fakes_names):
         plt.hist(f_s, bins=n_bins, alpha=alpha, label=name)
-
 
     auc_roc_scores = {}
     for o_name, o_score in zip(orig_names, o_scores):

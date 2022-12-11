@@ -24,3 +24,5 @@ result
 *.png
 
 data
+*.json
+!/confs/**/*.json

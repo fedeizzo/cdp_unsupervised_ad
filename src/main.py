@@ -1,3 +1,4 @@
+import torch
 from torch.optim import Adam
 
 from models.models import get_models
@@ -9,7 +10,7 @@ from utils.utils import *
 
 def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
     """Training loop which trains models according to the mode, train and validation loaders, learning rate, device and
-     epochs. The model/s is/are stored in the provided path."""
+    epochs. The model/s is/are stored in the provided path."""
     # Creating the model
     models = get_models(mode, device=device)
     optims = [Adam(model.parameters(), lr=lr) for model in models]
@@ -21,30 +22,31 @@ def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
     best_loss = float("inf")
     for epoch in range(epochs):
         epoch_loss, val_loss = 0.0, 0.0
-        for batch in train_loader:
-            t = batch["template"].to(device)
-            x = batch["originals"][0].to(device)
-            batch_loss = forward(mode, models, t, x)[0]
+        with torch.cuda.amp.autocast(enabled=False):
+            for batch in train_loader:
+                t = batch["template"].to(device)
+                x = batch["originals"][0].to(device)
+                batch_loss = forward(mode, models, t, x)[0]
 
-            for optim in optims:
-                optim.zero_grad()
+                for optim in optims:
+                    optim.zero_grad()
 
-            batch_loss.backward()
+                batch_loss.backward()
 
-            for optim in optims:
-                optim.step()
+                for optim in optims:
+                    optim.step()
 
-            epoch_loss += batch_loss.item() / len(train_loader)
+                epoch_loss += batch_loss.item() / len(train_loader)
 
-        for batch in val_loader:
-            t = batch["template"].to(device)
-            x = batch["originals"][0].to(device)
+            for batch in val_loader:
+                t = batch["template"].to(device)
+                x = batch["originals"][0].to(device)
 
-            batch_loss = forward(mode, models, t, x)[0]
+                batch_loss = forward(mode, models, t, x)[0]
 
-            val_loss += batch_loss.item() / len(val_loader)
+                val_loss += batch_loss.item() / len(val_loader)
 
-        epoch_str = f"Epoch {epoch + 1}/{epochs}\tTrain loss: {epoch_loss:.3f}\tVal loss: {val_loss:.3f}"
+        epoch_str = f"Epoch {epoch + 1}/{epochs}\tTrain loss: {epoch_loss:.5f}\tVal loss: {val_loss:.5f}"
         if val_loss < best_loss:
             best_loss = val_loss
             store_models(mode, models, result_dir)
@@ -52,8 +54,10 @@ def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
         print(epoch_str)
 
 
-def test(mode, test_loader, device, title=None, result_dir="./", o_names=None, f_names=None):
-    """Testing loop which """
+def test(
+    mode, test_loader, device, title=None, result_dir="./", o_names=None, f_names=None
+):
+    """Testing loop which"""
     models = load_models(mode, result_dir, device)
 
     for model in models:
@@ -93,6 +97,7 @@ def main():
     seed = args[SEED]
     o_names = args[ORIG_NAMES]
     f_names = args[FAKE_NAMES]
+    is_mobile_dataset = args.get(IS_MOBILE_DATASET, False)
     print(args)
 
     # Setting reproducibility
@@ -105,7 +110,9 @@ def main():
     device = get_device()
 
     # Loading data
-    train_loader, val_loader, test_loader, _ = load_cdp_data(args, tp, vp, bs)
+    train_loader, val_loader, test_loader, _ = load_cdp_data(
+        args, tp, vp, bs, is_mobile_dataset=is_mobile_dataset
+    )
 
     # Training new model(s) is result directory does not exist
     if not no_train:
@@ -116,11 +123,19 @@ def main():
 
     # Testing loop
     print(f"\n\nTesting trained model(s)")
-    test(mode, test_loader, device, f"Results with mode ({mode})", result_dir, o_names, f_names)
+    test(
+        mode,
+        test_loader,
+        device,
+        f"Results with mode ({mode})",
+        result_dir,
+        o_names,
+        f_names,
+    )
 
     # Notifying program has finished
     print(f"\nProgram completed successfully. Results are available at {result_dir}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
