@@ -1,5 +1,11 @@
 # CDP Unsupervised AD
 
+## Disclaimer
+**This repository is a fork of [this gitlab repo](https://gitlab.unige.ch/sip-group/cdp_unsupervised_ad)**
+
+The goal of this project is to investigate the topic of CDP starting from a tested baseline, since no LICENSE is specified in the original repository we want to underline that this work must be used only for educational purposes. We are a set of students attending the University of Trento and we do not want to make any kind of profit on top of this work or on top of the one made in the original repository.
+
+
 ## Description
 This repository collects the methods to do unsupervised anomaly detection on our Copy Detection Patterns (CDP) dataset.
 
