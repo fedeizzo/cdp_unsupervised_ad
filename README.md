@@ -12,6 +12,8 @@ The goal of this project is to investigate the topic of CDP starting from a test
 - **Indigo mobile integration**: 
   - introduce indigo mobile dataset;
   - test generalization capabilities of the model trained on top of CDP dataset.
+- **Templates print system**: add a script that is able to takes 8 CDPs and arrange them into a A4 pdf document ready to be printed.
+- **Acquisition system of new samples**: add a script that allows to acquire new samples from a scanned document containing CDPs; it uses OpeCV for the extraction part.
   
 ## Configs
 Adjust paths.
@@ -109,6 +111,37 @@ There are some differences in term of performance if the train is made on rgb (e
   "vp": 0.1,
   "seed": 0
 }
+```
+
+## Scripts
+### Samples for print
+```sh
+$ python scripts/samples_for_print.py -h
+usage: samples_for_print.py [-h] -s SEED -i INPUT_DIR -o OUTPUT_FILEPATH
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SEED, --seed SEED  Seed used to sample CDPs.
+  -i INPUT_DIR, --input-dir INPUT_DIR
+                        Directory containing templates or esimates.
+  -o OUTPUT_FILEPATH, --output-filepath OUTPUT_FILEPATH
+                        Filepath where the result will be saved.
+```
+
+### Acquire new samples
+```sh
+$ python scripts/acquire_new_samples.py -h
+usage: acquire_new_samples.py [-h] -s SEED -i INPUT_DIR -o OUTPUT_DIR -a ACQUISITION
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SEED, --seed SEED  Seed used to sample CDPs.
+  -i INPUT_DIR, --input-dir INPUT_DIR
+                        Directory containing templates or esimates.
+  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Directory where new acquisitions will be saved.
+  -a ACQUISITION, --acquisition ACQUISITION
+                        PNG/PDF of the scanned file.
 ```
 
 ---
