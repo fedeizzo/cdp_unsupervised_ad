@@ -26,7 +26,7 @@ def acquire(img_names: List[str], filename: str):
     # Find contours and filter for QR code
     cnts = cv2.findContours(close, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-    for c, path in zip(cnts, img_names):
+    for c, path in zip(cnts, img_names[::-1]):
         peri = cv2.arcLength(c, True)
         approx = cv2.approxPolyDP(c, 0.04 * peri, True)
         x, y, w, h = cv2.boundingRect(approx)
@@ -36,6 +36,7 @@ def acquire(img_names: List[str], filename: str):
         if len(approx) == 4 and area > 1000:
             cv2.rectangle(image, (x, y), (x + w, y + h), (36, 255, 12), 3)
             ROI = original[y : y + h, x : x + w]
+            print(f"Saving file {path}")
             cv2.imwrite(path, ROI)
 
     # cv2.imshow("thresh", thresh)

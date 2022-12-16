@@ -26,7 +26,9 @@ def main(template_dir: str, seed: int, output_filepath: str):
     axs = axs.flatten()
     for path, ax in zip(img_names, axs):
         img = image_norm(imread(join(template_dir, path), -1).astype(np.float32))
-        ax.imshow(img, cmap="Greys", interpolation="nearest")
+        img[np.where(img == 1)] = 255
+        ax.imshow(img, cmap="Greys_r", interpolation="none")
+        #ax.set_title(path)
         ax.get_yaxis().set_visible(False)
         ax.get_xaxis().set_visible(False)
         ax.spines["top"].set_visible(False)
@@ -34,6 +36,7 @@ def main(template_dir: str, seed: int, output_filepath: str):
         ax.spines["bottom"].set_visible(False)
         ax.spines["left"].set_visible(False)
 
+    print(f"Savings {img_names}")
     fig.savefig(output_filepath)
 
 
