@@ -207,6 +207,11 @@ class CDPDataset(Dataset):
         img = cv2.imread(os.path.join(d, fn), cv2.IMREAD_GRAYSCALE).astype(np.float32)
         if self.is_mobile_dataset:
             img = img[1:-1, 1:-1]
+        elif img.shape[0] < 684:
+            # width = img.shape[0] // 2
+            # height = img.shape[1] // 2
+            # img = img[width - 272 : width + 272, height - 272 : height + 272]
+            img = cv2.resize(img, (684, 684))
         img = np.expand_dims(img, 2)
         return img
 
