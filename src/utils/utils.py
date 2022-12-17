@@ -135,8 +135,12 @@ def store_hist_picture(
         file.write(auc_roc_scores)
         file.close()
 
+    anomaly_scores = sorted(np.concatenate([f_scores.flatten(), o_scores.squeeze(0)]))
+    median_anomaly_score = anomaly_scores[len(anomaly_scores) // 2]
+    print(f"{median_anomaly_score=}")
     plt.legend()
     plt.xlabel("Anomaly score")
     plt.ylabel("Density")
+    # plt.xlim([0, median_anomaly_score])
     plt.title(title)
     plt.savefig(os.path.join(dest, pic_name))

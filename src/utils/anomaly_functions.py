@@ -22,6 +22,12 @@ def keep_top_percent(confidence: torch.Tensor, percent: float, binarize=False):
     return torch.stack(result)
 
 
+def get_anomaly_map(t, x_hat, y):
+    c = keep_top_percent(1 - torch.abs(x_hat - t), 0.85)
+    anomaly_map = c * (x_hat - y) ** 2
+    return anomaly_map
+
+
 def get_anomaly_score(mode, models, t, y):
     """Given the mode, pre-trained model(s), templates and test printed CDPs, returns the anomaly scores per each sample
     based on the provided mode."""

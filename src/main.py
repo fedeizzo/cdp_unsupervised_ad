@@ -6,6 +6,8 @@ from models.utils import forward, store_models, load_models
 from data.utils import load_cdp_data
 from utils.anomaly_functions import *
 from utils.utils import *
+from visualizations.utils import dump_intermediate_images
+from os import makedirs
 
 
 def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
@@ -18,15 +20,52 @@ def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
     # Training loop
     for model in models:
         model.train()
-
+    makedirs(f"{result_dir}/train", exist_ok=True)
+    makedirs(f"{result_dir}/val", exist_ok=True)
     best_loss = float("inf")
     for epoch in range(epochs):
         epoch_loss, val_loss = 0.0, 0.0
         with torch.cuda.amp.autocast(enabled=False):
+            is_dump_done = False
+            batch_anomaly_score = {
+                "train": {"original": 0.0, "fake": 0.0},
+                "val": {"original": 0.0, "fake": 0.0},
+            }
             for batch in train_loader:
                 t = batch["template"].to(device)
                 x = batch["originals"][0].to(device)
-                batch_loss = forward(mode, models, t, x)[0]
+                f = batch["fakes"][0].to(device)
+                model_output = forward(mode, models, t, x)
+                batch_loss = model_output[0]
+                anomaly_map_original = get_anomaly_map(
+                    t.cpu().detach(),
+                    model_output[1].cpu().detach(),
+                    x.cpu().detach(),
+                )
+                anomaly_map_fake = get_anomaly_map(
+                    t.cpu().detach(),
+                    model_output[1].cpu().detach(),
+                    f.cpu().detach(),
+                )
+                batch_anomaly_score["train"]["original"] += float(
+                    torch.sum(anomaly_map_original, dim=[1, 2, 3]).mean().item()
+                ) / len(train_loader)
+                batch_anomaly_score["train"]["fake"] += float(
+                    torch.sum(anomaly_map_fake, dim=[1, 2, 3]).mean().item()
+                ) / len(train_loader)
+
+                if not is_dump_done:
+                    dump_intermediate_images(
+                        t.cpu().detach(),
+                        x.cpu().detach(),
+                        model_output[1].cpu().detach(),
+                        f.cpu().detach(),
+                        anomaly_map_original,
+                        anomaly_map_fake,
+                        epoch,
+                        f"{result_dir}/train/dump_{epoch}.pdf",
+                    )
+                    is_dump_done = True
 
                 for optim in optims:
                     optim.zero_grad()
@@ -37,16 +76,55 @@ def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
                     optim.step()
 
                 epoch_loss += batch_loss.item() / len(train_loader)
+                del x, t, f, model_output, anomaly_map_fake, anomaly_map_original
 
+            is_dump_done = False
             for batch in val_loader:
                 t = batch["template"].to(device)
                 x = batch["originals"][0].to(device)
+                f = batch["fakes"][0].to(device)
 
-                batch_loss = forward(mode, models, t, x)[0]
+                model_output = forward(mode, models, t, x)
+                batch_loss = model_output[0]
+                anomaly_map_original = get_anomaly_map(
+                    t.cpu().detach(),
+                    model_output[1].cpu().detach(),
+                    x.cpu().detach(),
+                )
+                anomaly_map_fake = get_anomaly_map(
+                    t.cpu().detach(),
+                    model_output[1].cpu().detach(),
+                    f.cpu().detach(),
+                )
+                batch_anomaly_score["val"]["original"] += float(
+                    torch.sum(anomaly_map_original, dim=[1, 2, 3]).mean().item()
+                ) / len(val_loader)
+                batch_anomaly_score["val"]["fake"] += float(
+                    torch.sum(anomaly_map_fake, dim=[1, 2, 3]).mean().item()
+                ) / len(val_loader)
+                if not is_dump_done:
+                    dump_intermediate_images(
+                        t.cpu().detach(),
+                        x.cpu().detach(),
+                        model_output[1].cpu().detach(),
+                        f.cpu().detach(),
+                        anomaly_map_original,
+                        anomaly_map_fake,
+                        epoch,
+                        f"{result_dir}/val/dump_{epoch}.pdf",
+                    )
+                    is_dump_done = True
 
                 val_loss += batch_loss.item() / len(val_loader)
+                del x, t, f, model_output, anomaly_map_fake, anomaly_map_original
 
-        epoch_str = f"Epoch {epoch + 1}/{epochs}\tTrain loss: {epoch_loss:.5f}\tVal loss: {val_loss:.5f}"
+        epoch_str = (
+            f"Epoch {epoch + 1}/{epochs}\tTrain loss: {epoch_loss:.5f}\tVal loss: {val_loss:.5f}"
+            f"\tTrain original anomaly {batch_anomaly_score['train']['original']:.0f}"
+            f"\tTrain fake anomaly {batch_anomaly_score['train']['fake']:.0f}"
+            f"\tVal original anomaly {batch_anomaly_score['val']['original']:.0f}"
+            f"\tVal fake anomaly {batch_anomaly_score['val']['fake']:.0f}"
+        )
         if val_loss < best_loss:
             best_loss = val_loss
             store_models(mode, models, result_dir)

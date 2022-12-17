@@ -14,6 +14,7 @@ The goal of this project is to investigate the topic of CDP starting from a test
   - test generalization capabilities of the model trained on top of CDP dataset.
 - **Templates print system**: add a script that is able to takes 8 CDPs and arrange them into a A4 pdf document ready to be printed.
 - **Acquisition system of new samples**: add a script that allows to acquire new samples from a scanned document containing CDPs; it uses OpeCV for the extraction part.
+- **Add intermediate images dump**: this is done to assess the model ability and the related correlation with the anomaly map during the train (to motivate the low integration results with indigo mobile dataset).
   
 ## Configs
 Adjust paths.
