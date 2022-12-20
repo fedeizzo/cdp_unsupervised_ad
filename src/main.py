@@ -1,13 +1,17 @@
+import pdb
 import torch
 from torch.optim import Adam
+from torch.utils.data import DataLoader, TensorDataset
 
 from models.models import get_models
+from models.convolutional_attention import ConfidenceModel
 from models.utils import forward, store_models, load_models
 from data.utils import load_cdp_data
 from utils.anomaly_functions import *
 from utils.utils import *
 from visualizations.utils import dump_intermediate_images
 from os import makedirs
+from torchinfo import summary
 
 
 def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
@@ -132,6 +136,72 @@ def train(mode, train_loader, val_loader, lr, device, epochs, result_dir="./"):
         print(epoch_str)
 
 
+def train_self_attention(
+    mode,
+    train_loader,
+    val_loader,
+    device,
+    batch_size,
+    epochs,
+    title=None,
+    result_dir="./",
+    o_names=None,
+    f_names=None,
+):
+    models = load_models(mode, result_dir, "cpu")
+    for m in models:
+        m.eval()
+    train_samples = []
+    val_samples = []
+    for split, samples in zip([train_loader, val_loader], [train_samples, val_samples]):
+        for batch in split:
+            t = batch["template"]
+            x = batch["originals"][0]
+            f = batch["fakes"][0]
+            model_output = forward(mode, models, t, x)
+            x_hat = model_output[1]
+            samples.append(torch.abs(x_hat - x).detach())
+    train_samples = torch.concat(train_samples)
+    val_samples = torch.concat(val_samples)
+
+    del models, val_loader, train_loader
+    attention_train_loader = DataLoader(
+        TensorDataset(train_samples), batch_size=batch_size, shuffle=False
+    )
+    attention_val_loader = DataLoader(
+        TensorDataset(train_samples), batch_size=batch_size, shuffle=False
+    )
+
+    attention_model = ConfidenceModel(kernel_size=7).to(device)
+    optim = torch.optim.Adam(attention_model.parameters(), lr=0.0001)
+    for epoch in range(epochs):
+        epoch_loss = {"train": 0.0, "val": 0.0}
+        for split, phase in zip(
+            [attention_train_loader, attention_val_loader], ["train", "val"]
+        ):
+            if phase == "train":
+                attention_model.train()
+            else:
+                attention_model.eval()
+            optim.zero_grad()
+            with torch.set_grad_enabled(phase == "train"):
+                for (anomaly_map,) in split:
+                    anomaly_map = anomaly_map.to(device)
+                    anomaly_score = attention_model(anomaly_map)
+                    anomaly_score = anomaly_score.mean()
+                    if phase == "train":
+                        anomaly_score.backward()
+                        optim.step()
+                    epoch_loss[phase] += anomaly_score.item() / len(split)
+                    del anomaly_map
+        epoch_str = f"Epoch {epoch + 1}/{epochs}\tTrain loss: {epoch_loss['train']:.5f}\tVal loss: {epoch_loss['val']:.5f}"
+        # if val_loss < best_loss:
+        #     best_loss = val_loss
+        #     store_models(mode, models, result_dir)
+        #     epoch_str += " --> Stored best model(s)"
+        print(epoch_str)
+
+
 def test(
     mode, test_loader, device, title=None, result_dir="./", o_names=None, f_names=None
 ):
@@ -140,7 +210,6 @@ def test(
 
     for model in models:
         model.eval()
-
     o_scores = [[] for _ in range(len(test_loader.dataset.x_dirs))]
     f_scores = [[] for _ in range(len(test_loader.dataset.f_dirs))]
 
@@ -148,7 +217,6 @@ def test(
         for batch in test_loader:
             t = batch["template"].to(device)
             x = batch["originals"][0].to(device)
-
             for idx, x in enumerate(batch["originals"]):
                 x = x.to(device)
                 o_scores[idx].extend(get_anomaly_score(mode, models, t, x))
@@ -176,6 +244,9 @@ def main():
     o_names = args[ORIG_NAMES]
     f_names = args[FAKE_NAMES]
     is_mobile_dataset = args.get(IS_MOBILE_DATASET, False)
+    train_attention = args.get(TRAIN_ATTENTION, False)
+    n_epochs_self_attention = args[EPOCHS_SELF_ATTENTION]
+    bs_self_attention = args[BS_SELF_ATTENTION]
     print(args)
 
     # Setting reproducibility
@@ -198,6 +269,16 @@ def main():
 
         # Training loop
         train(mode, train_loader, val_loader, lr, device, n_epochs, result_dir)
+    if train_attention:
+        train_self_attention(
+            mode,
+            train_loader,
+            val_loader,
+            device,
+            bs_self_attention,
+            n_epochs_self_attention,
+            result_dir=result_dir,
+        )
 
     # Testing loop
     print(f"\n\nTesting trained model(s)")

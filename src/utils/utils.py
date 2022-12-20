@@ -25,6 +25,9 @@ RESULT_DIR = "result_dir"
 ORIG_NAMES = "orig_names"
 FAKE_NAMES = "fake_names"
 IS_MOBILE_DATASET = "is_mobile_dataset"
+TRAIN_ATTENTION = "train_attention"
+EPOCHS_SELF_ATTENTION = "epochs_self_attention"
+BS_SELF_ATTENTION = "bs_self_attention"
 SEED = "seed"
 
 
@@ -141,6 +144,6 @@ def store_hist_picture(
     plt.legend()
     plt.xlabel("Anomaly score")
     plt.ylabel("Density")
-    # plt.xlim([0, median_anomaly_score])
+    plt.xlim([0, 500])
     plt.title(title)
     plt.savefig(os.path.join(dest, pic_name))
